@@ -15,10 +15,15 @@ import StoreDashboard from "@/features/store/pages/StoreDashboard";
 import AddProduct from "@/features/store/pages/AddProduct";
 import ManageProducts from "@/features/store/pages/ManageProducts";
 import StoreRedirect from "@/features/store/pages/StoreRedirect";
+import RootLayout from "./layouts/RootLayout";
+import Home from "@/features/catalog/pages/Home";
 
 const router = createBrowserRouter(
     createRoutesFromElements(
         <>
+            <Route path='/' element={<RootLayout />}>
+                <Route index element={<Home />} />
+            </Route>
             <Route path='/user' element={<AuthLayout />}>
                 <Route path='login' element={<Login />} />
                 <Route path='signup' element={<Signup />} />
