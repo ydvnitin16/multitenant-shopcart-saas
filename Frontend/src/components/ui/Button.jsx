@@ -23,7 +23,7 @@ const Button = ({
     return (
         <button
             className={clsx(
-                'inline-flex items-center justify-center rounded-lg font-medium transition cursor-pointer',
+                'flex items-center justify-center rounded-lg font-medium transition cursor-pointer',
                 'focus:outline-none focus:ring-2 focus:ring-zinc-900',
                 'disabled:opacity-60 disabled:pointer-events-none',
                 variants[variant],
