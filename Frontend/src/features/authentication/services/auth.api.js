@@ -28,3 +28,17 @@ export const signupUser = async (data) => {
     }
     return await res.json();
 };
+
+export const logoutUser = async () => {
+    const res = await fetch(`${BASE_URL}/user/logout`, {
+        method: 'DELETE',
+        credentials: 'include',
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'Logout failed');
+    }
+
+    return await res.json();
+};

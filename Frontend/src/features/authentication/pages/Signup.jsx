@@ -22,13 +22,13 @@ const Signup = () => {
     return (
         <AuthWrapper>
             <div className="flex-1 flex items-center justify-center px-6">
-                <div className="w-full max-w-md rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8">
+                <div className="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-8">
                     {/* Header */}
                     <div className="mb-6">
                         <h1 className="text-2xl font-semibold tracking-tight">
                             Create your account
                         </h1>
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                        <p className="text-sm text-zinc-500 mt-1">
                             Get started with managing your store and orders
                         </p>
                     </div>
@@ -72,11 +72,11 @@ const Signup = () => {
                     </form>
 
                     {/* Footer */}
-                    <p className="text-sm text-center text-zinc-500 dark:text-zinc-400 mt-6">
+                    <p className="text-sm text-center text-zinc-500 mt-6">
                         Already have an account?
                         <Link
                             to="/user/login"
-                            className="ml-1 text-zinc-900 dark:text-zinc-100 hover:underline"
+                            className="ml-1 text-zinc-900 hover:underline"
                         >
                             Log in
                         </Link>
