@@ -17,31 +17,48 @@ import ManageProducts from "@/features/store/pages/ManageProducts";
 import StoreRedirect from "@/features/store/pages/StoreRedirect";
 import RootLayout from "./layouts/RootLayout";
 import Home from "@/features/catalog/pages/Home";
+import Shop from "@/features/catalog/pages/Shop";
+import Cart from "@/features/catalog/pages/Cart";
+import Product from "@/features/catalog/pages/Product";
+import VendorShop from "@/features/catalog/pages/VendorShop";
+import PublicOnlyRoute from "@/features/authentication/components/PublicOnlyRoute";
+import ProtectedRoute from "@/features/authentication/components/ProtectedRoute";
 
 const router = createBrowserRouter(
     createRoutesFromElements(
         <>
             <Route path='/' element={<RootLayout />}>
                 <Route index element={<Home />} />
+                <Route path='/shop' element={<Shop />} />
+                <Route path='/cart' element={<Cart />} />
             </Route>
-            <Route path='/user' element={<AuthLayout />}>
-                <Route path='login' element={<Login />} />
-                <Route path='signup' element={<Signup />} />
+            <Route path='/vendor/:storeSlug' element={<VendorShop />} />
+            <Route path='/product/:productId' element={<Product />} />
+            
+            <Route element={<PublicOnlyRoute />}>
+                <Route path='/user' element={<AuthLayout />}>
+                    <Route path='login' element={<Login />} />
+                    <Route path='signup' element={<Signup />} />
+                </Route>
             </Route>
-            <Route path='/admin' element={<AdminLayout />}>
-                <Route path='dashboard' element={<Dashboard />} />
-                <Route path='stores' element={<Stores />} />
-                <Route path='store-requests' element={<StoreRequests />} />
+            <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
+                <Route path='/admin' element={<AdminLayout />}>
+                    <Route path='dashboard' element={<Dashboard />} />
+                    <Route path='stores' element={<Stores />} />
+                    <Route path='store-requests' element={<StoreRequests />} />
+                </Route>
             </Route>
-            <Route path='/store' element={<StoreLayout />}>
-                <Route index element={<StoreRedirect />} />
-                <Route path=':storeSlug'>
-                    <Route path='dashboard' element={<StoreDashboard />} />
-                    <Route path='add-product' element={<AddProduct />} />
-                    <Route
-                        path='manage-products'
-                        element={<ManageProducts />}
-                    />
+            <Route element={<ProtectedRoute allowedRoles={["VENDOR"]} />}>
+                <Route path='/store' element={<StoreLayout />}>
+                    <Route index element={<StoreRedirect />} />
+                    <Route path=':storeSlug'>
+                        <Route path='dashboard' element={<StoreDashboard />} />
+                        <Route path='add-product' element={<AddProduct />} />
+                        <Route
+                            path='manage-products'
+                            element={<ManageProducts />}
+                        />
+                    </Route>
                 </Route>
             </Route>
         </>,
