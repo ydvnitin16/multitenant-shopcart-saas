@@ -1,21 +1,21 @@
 import { Facebook, Instagram, Twitter, Github } from "lucide-react";
 import { Link } from "react-router-dom";
 
-export const footerProducts = [
+const footerProducts = [
     { label: "Earphones", path: "/category/earphones" },
     { label: "Headphones", path: "/category/headphones" },
     { label: "Smartphones", path: "/category/smartphones" },
     { label: "Laptops", path: "/category/laptops" },
 ];
 
-export const footerWebsite = [
+const footerWebsite = [
     { label: "Home", path: "/" },
     { label: "Privacy Policy", path: "/privacy-policy" },
     { label: "Become Plus Member", path: "/membership" },
-    { label: "Create Your Store", path: "/become-vendor" },
+    { label: "Create Your Store", path: "/request-store" },
 ];
 
-export const footerContacts = [
+const footerContacts = [
     {
         label: "+1-212-456-7890",
     },
@@ -27,7 +27,7 @@ export const footerContacts = [
     },
 ];
 
-export const footerSocials = [
+const footerSocials = [
     {
         name: "Facebook",
         url: "https://facebook.com",

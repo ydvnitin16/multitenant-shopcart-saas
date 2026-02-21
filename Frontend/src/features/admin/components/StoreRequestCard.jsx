@@ -21,7 +21,7 @@ const StoreRequestCard = ({ store, approveStore, rejectStore, loading }) => {
                     <div className="flex items-center gap-4">
                         <img
                             className="w-16 h-16 rounded-xl object-cover border border-zinc-300 bg-zinc-50 shrink-0"
-                            src={store.image.url}
+                            src={store.image?.url}
                             alt="store image"
                         />
 

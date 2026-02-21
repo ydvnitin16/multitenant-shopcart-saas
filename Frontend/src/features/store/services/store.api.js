@@ -12,3 +12,17 @@ export const fetchMyStores = async () => {
     }
     return await res.json();
 };
+
+export const requestStore = async (data) => {
+    const res = await fetch(`${BASE_URL}/store/create-request`, {
+        method: "POST",
+        credentials: "include",
+        body: data,
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Store request failed");
+    }
+    return await res.json();
+};

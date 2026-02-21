@@ -23,18 +23,28 @@ import Product from "@/features/catalog/pages/Product";
 import VendorShop from "@/features/catalog/pages/VendorShop";
 import PublicOnlyRoute from "@/features/authentication/components/PublicOnlyRoute";
 import ProtectedRoute from "@/features/authentication/components/ProtectedRoute";
+import RequestStore from "@/features/store/pages/RequestStore";
 
 const router = createBrowserRouter(
     createRoutesFromElements(
         <>
             <Route path='/' element={<RootLayout />}>
                 <Route index element={<Home />} />
-                <Route path='/shop' element={<Shop />} />
-                <Route path='/cart' element={<Cart />} />
+                <Route path='shop' element={<Shop />} />
+                <Route path='cart' element={<Cart />} />
+                <Route
+                    element={
+                        <ProtectedRoute
+                            allowedRoles={["CUSTOMER", "VENDOR", "ADMIN"]}
+                        />
+                    }
+                >
+                    <Route path='request-store' element={<RequestStore />} />
+                </Route>
             </Route>
             <Route path='/vendor/:storeSlug' element={<VendorShop />} />
             <Route path='/product/:productId' element={<Product />} />
-            
+
             <Route element={<PublicOnlyRoute />}>
                 <Route path='/user' element={<AuthLayout />}>
                     <Route path='login' element={<Login />} />
