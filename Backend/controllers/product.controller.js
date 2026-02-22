@@ -1,5 +1,6 @@
 import Product from "../models/product.js";
 import {
+    getProductByIdService,
     getProductsByStoreService,
     getProductsService,
     storeProductService,
@@ -87,4 +88,11 @@ export const getProducts = async (req, res) => {
         success: true,
         ...data,
     });
+};
+
+export const getProduct = async (req, res) => {
+    const { productId } = req.params;
+    const product = await getProductByIdService(productId);
+
+    res.status(200).json({ success: true, product });
 };

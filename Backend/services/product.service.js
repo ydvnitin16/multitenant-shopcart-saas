@@ -63,7 +63,7 @@ export const getProductsService = async ({
 }) => {
     const skip = (page - 1) * limit;
 
-    const filter = { inStock: true };
+    const filter = {};
 
     if (storeId) {
         filter.storeId = storeId;
@@ -89,4 +89,17 @@ export const getProductsService = async ({
             pages: Math.ceil(totalProducts / limit),
         },
     };
+};
+
+export const getProductByIdService = async (id) => {
+    const product = await Product.findOne({ _id: id }).populate(
+        "storeId",
+        "name slug image",
+    );
+
+    if (!product) {
+        throw new ApiError(404, "Product not found");
+    }
+
+    return product;
 };

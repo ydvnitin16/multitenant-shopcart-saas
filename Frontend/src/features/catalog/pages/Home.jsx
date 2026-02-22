@@ -31,7 +31,6 @@ const Home = () => {
         order: "asc",
     });
 
-    console.log(bestSellingProducts);
     return (
         <>
             {/* Hero section */}
@@ -58,6 +57,7 @@ const Home = () => {
                         newArrivalsProducts.map((p) => (
                             <ProductCard
                                 key={p._id}
+                                id={p._id}
                                 image={p.images[0]}
                                 title={p.title}
                                 price={p.price}
@@ -86,6 +86,7 @@ const Home = () => {
                         bestSellingProducts.map((p) => (
                             <ProductCard
                                 key={p._id}
+                                id={p._id}
                                 image={p.images[0]}
                                 title={p.title}
                                 price={p.price}
