@@ -6,7 +6,7 @@ import ConfirmationModal from "./ConfirmationModal";
 const UserMenu = ({ user, onLogout }) => {
     const [open, setOpen] = useState(false);
     const menuRef = useRef();
-    console.log("UserMenu rendered with user:", user); // Debug log
+
     // Close when clicked outside
     useEffect(() => {
         const handler = (e) => {
@@ -58,7 +58,7 @@ const UserMenu = ({ user, onLogout }) => {
                     <div className='border-t border-zinc-300 pt-3 space-y-2 text-sm'>
                         {user.role === "VENDOR" && (
                             <Link
-                                to='/store/dashboard'
+                                to='/store'
                                 className='flex items-center gap-2 text-zinc-600 hover:text-emerald-600 transition'
                             >
                                 <Store size={16} />

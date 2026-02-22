@@ -24,6 +24,7 @@ import VendorShop from "@/features/catalog/pages/VendorShop";
 import PublicOnlyRoute from "@/features/authentication/components/PublicOnlyRoute";
 import ProtectedRoute from "@/features/authentication/components/ProtectedRoute";
 import RequestStore from "@/features/store/pages/RequestStore";
+import StoreRequestStatus from "@/features/store/pages/StoreRequestStatus";
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -40,6 +41,10 @@ const router = createBrowserRouter(
                     }
                 >
                     <Route path='request-store' element={<RequestStore />} />
+                    <Route
+                        path='store-request-status'
+                        element={<StoreRequestStatus />}
+                    />
                 </Route>
             </Route>
             <Route path='/vendor/:storeSlug' element={<VendorShop />} />

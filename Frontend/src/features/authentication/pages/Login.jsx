@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import AuthWrapper from "../components/AuthWrapper.jsx";
 import Input from "@/components/ui/Input.jsx";
 import Button from "@/components/ui/Button.jsx";
+import InlineLoader from "@/components/ui/InlineLoader.jsx";
 
 const Login = () => {
     const {
@@ -17,7 +18,7 @@ const Login = () => {
         resolver: yupResolver(loginSchema),
     });
 
-    const { onSubmit } = useAuthHandle({ type: "login", reset });
+    const { onSubmit, loading } = useAuthHandle({ type: "login", reset });
 
     return (
         <AuthWrapper>
@@ -72,7 +73,11 @@ const Login = () => {
 
                         {/* Button */}
                         <Button size={"lg"} className={"w-full"} type='submit'>
-                            Log in
+                            {loading ? (
+                                <InlineLoader content='Logging in...' />
+                            ) : (
+                                "Login"
+                            )}
                         </Button>
                     </form>
 

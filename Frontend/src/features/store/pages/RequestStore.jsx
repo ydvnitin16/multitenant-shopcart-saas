@@ -1,4 +1,3 @@
-import { useState } from "react";
 import Button from "@/components/ui/Button";
 import { useRequestStore } from "../hooks/useRequestStore";
 import { useForm } from "react-hook-form";
@@ -23,6 +22,15 @@ const RequestStore = () => {
         <div className='min-h-screen bg-zinc-50 pt-28 px-6'>
             <div className='max-w-3xl mx-auto'>
                 {/* Card */}
+                <p
+                        className='text-end mb-3 text-emerald-500'>
+                    <a
+                        href='/store-request-status'
+                    >
+                        ← Requested Store Status
+                    </a>
+                </p>
+
                 <div className='bg-white border border-zinc-200 rounded-2xl shadow-sm p-8 space-y-8'>
                     {/* Header */}
                     <div>

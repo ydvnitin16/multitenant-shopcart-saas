@@ -3,7 +3,7 @@ import ApiError from '../../utils/apiError.js';
 const validateProduct = (req, res, next) => {
     const { name, description, price, mrp } = req.body;
     const images = req.files;
-
+    console.log(req.body, images)
     if (!name || !description || !mrp || !price)
         throw new ApiError(400, 'Please fill all required fields');
 

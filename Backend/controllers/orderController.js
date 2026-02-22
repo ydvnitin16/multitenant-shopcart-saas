@@ -1,5 +1,5 @@
-import Order from '../models/Orders.js';
-import Product from '../models/Products.js';
+import Order from '../models/order.js';
+import Product from '../models/product.js';
 
 // User place order -> save in the DB
 const placeOrder = async (req, res) => {

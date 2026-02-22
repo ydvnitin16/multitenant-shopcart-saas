@@ -14,7 +14,7 @@ const StoreCard = ({ store, handleStoreChange }) => {
             <div className="h-8 w-8 rounded-md bg-zinc-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                 {store.image ? (
                     <img
-                        src={store.image.url}
+                        src={store.image?.url}
                         className="h-full w-full object-cover"
                     />
                 ) : (

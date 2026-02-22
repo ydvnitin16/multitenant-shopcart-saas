@@ -29,8 +29,8 @@ export const loginUser = async (req, res) => {
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
     if (!isPasswordCorrect) throw new ApiError(404, 'Invalid Credentials');
-
     generateTokenAndSetCookie(res, user);
+
 
     ApiSuccess(res, 201, 'User Logged successfully', {
         user: {
