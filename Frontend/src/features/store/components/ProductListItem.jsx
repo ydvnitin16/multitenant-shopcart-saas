@@ -6,7 +6,7 @@ const ProductListItem = ({ product, storeSlug, updateStock }) => {
     return (
         <div className='grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 px-4 py-3 hover:bg-zinc-50 items-center'>
             <div className='flex items-center gap-3 md:col-span-5'>
-                <div className='h-12 w-12 rounded-md bg-zinc-100 overflow-hidden flex-shrink-0'>
+                <div className='h-12 w-12 rounded-md bg-zinc-100 overflow-hidden'>
                     <img
                         src={product.images[0]?.url}
                         alt={`${product.name} image`}

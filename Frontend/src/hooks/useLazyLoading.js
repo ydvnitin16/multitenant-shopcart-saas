@@ -6,12 +6,10 @@ export const useLazyLoading = (options = {}) => {
     const imgRef = useRef(null);
 
     const handleLoad = useCallback(() => {
-        console.log('Image loaded successfully');
         setIsLoaded(true);
     }, []);
 
     const handleError = useCallback(() => {
-        console.error('Failed to load image:', imgRef.current?.src);
         setIsLoaded(false);
     }, []);
 
@@ -21,10 +19,6 @@ export const useLazyLoading = (options = {}) => {
 
         const observer = new IntersectionObserver(
             ([entry]) => {
-                console.log(
-                    'Intersection observer triggered:',
-                    entry.isIntersecting
-                );
                 if (entry.isIntersecting) {
                     setIsInView(true);
                     observer.disconnect();

@@ -12,7 +12,8 @@ const footerWebsite = [
     { label: "Home", path: "/" },
     { label: "Privacy Policy", path: "/privacy-policy" },
     { label: "Become Plus Member", path: "/membership" },
-    { label: "Create Your Store", path: "/request-store" },
+    { label: "Request Your Store", path: "/request-store" },
+    { label: "Requested store status", path: "/store-request-status" },
 ];
 
 const footerContacts = [
@@ -52,7 +53,7 @@ const footerSocials = [
 
 const Footer = () => {
     return (
-        <footer className='bg-white border-t border-zinc-200 mt-20'>
+        <footer className='bg-white border-t border-zinc-200 mt-10'>
             <div className='max-w-6xl mx-auto px-6 py-16'>
                 <div className='grid grid-cols-2 md:grid-cols-4 gap-10'>
                     <div>

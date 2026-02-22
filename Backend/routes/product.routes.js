@@ -1,99 +1,83 @@
-import express from 'express';
-import Product from '../models/product.js';
-import { allowedRoles, auth } from '../middlewares/auth.middlewares.js';
+import express from "express";
+import Product from "../models/product.js";
+import { allowedRoles, auth } from "../middlewares/auth.middlewares.js";
 import {
     isStoreApproved,
     resolveTenant,
-} from '../middlewares/store.middleware.js';
+} from "../middlewares/store.middleware.js";
 import {
     validateProduct,
     validateProductUpdate,
-} from '../middlewares/validate/product.validate.js';
+} from "../middlewares/validate/product.validate.js";
 import {
     createProduct,
     getMyStoreProducts,
+    getProducts,
     updateProduct,
-} from '../controllers/product.controller.js';
-import multer from 'multer';
-import { storage } from '../config/cloudinary.js';
+} from "../controllers/product.controller.js";
+import multer from "multer";
+import { storage } from "../config/cloudinary.js";
 
 const router = express.Router();
 const uploads = multer({ storage });
 
 router.post(
-    '/:storeSlug/create-product',
+    "/:storeSlug/create-product",
     auth,
-    allowedRoles('VENDOR'),
+    allowedRoles("VENDOR"),
     resolveTenant,
     isStoreApproved,
-    uploads.array('images'),
+    uploads.array("images"),
     validateProduct,
     createProduct,
 );
 
 router.put(
-    '/:storeSlug/product/:productId/update',
+    "/:storeSlug/product/:productId/update",
     auth,
-    allowedRoles('VENDOR'),
+    allowedRoles("VENDOR"),
     resolveTenant,
     isStoreApproved,
     validateProductUpdate,
     updateProduct,
 );
 
-router.get('/:storeSlug/products', auth, allowedRoles('VENDOR'), resolveTenant, isStoreApproved, getMyStoreProducts)
+router.get(
+    "/:storeSlug/products",
+    auth,
+    allowedRoles("VENDOR"),
+    resolveTenant,
+    isStoreApproved,
+    getMyStoreProducts,
+);
 
 // User -> Shop -> Show products
-router.get('/products', async (req, res) => {
-    const { category, page, limit, bestSeller } = req.query;
-    try {
-        let query = {};
-
-        if (category && category !== 'All') query.category = category;
-        let productQuery = Product.find(query); // returns object
-
-        if (bestSeller) productQuery = productQuery.sort({ itemSold: -1 });
-
-        const skip = (Number(page) - 1) * Number(limit);
-        productQuery = productQuery.skip(skip).limit(Number(limit));
-
-        const products = await productQuery; // actual call happens here.
-
-        if (!products || products.length === 0)
-            return res.status(404).json({ message: 'No Products' });
-
-        res.status(200).json({ message: 'All Products', products });
-    } catch (error) {
-        res.status(500).json({
-            message: 'Server error. please try again later.',
-        });
-    }
-});
+router.get("/products", getProducts);
 
 // Product Route -> Show details about product
-router.get('/product/:id', async (req, res) => {
+router.get("/product/:id", async (req, res) => {
     const { id } = req.params;
     try {
         const product = await Product.findById(id);
         if (!product)
-            return res.status(404).json({ message: 'Product Not Found' });
+            return res.status(404).json({ message: "Product Not Found" });
 
-        res.status(200).json({ message: 'All Products', product });
+        res.status(200).json({ message: "All Products", product });
     } catch (error) {
         res.status(500).json({
-            message: 'Server error. please try again later.',
+            message: "Server error. please try again later.",
         });
     }
 });
 
 // Get products by array of IDs (cart)
-router.post('/products/cart', async (req, res) => {
+router.post("/products/cart", async (req, res) => {
     const { ids } = req.body;
 
     if (!ids || !Array.isArray(ids)) {
         return res
             .status(400)
-            .json({ message: 'Invalid or missing IDs array' });
+            .json({ message: "Invalid or missing IDs array" });
     }
 
     try {
@@ -102,13 +86,13 @@ router.post('/products/cart', async (req, res) => {
         if (!products || products.length === 0) {
             return res
                 .status(404)
-                .json({ message: 'No products found for given IDs' });
+                .json({ message: "No products found for given IDs" });
         }
 
-        res.status(200).json({ message: 'Cart Products', products });
+        res.status(200).json({ message: "Cart Products", products });
     } catch (error) {
         res.status(500).json({
-            message: 'Server error. please try again later.',
+            message: "Server error. please try again later.",
         });
     }
 });

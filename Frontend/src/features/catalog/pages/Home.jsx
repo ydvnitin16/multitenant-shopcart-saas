@@ -3,14 +3,35 @@ import HeroSection from "../components/HeroSection";
 import Features from "../components/Features";
 import ProductCard from "../components/ProductCard";
 import SectionWrapper from "../components/SectionWrapper";
-import {
-    bestSellingProducts,
-    newArrivalsProducts,
-} from "../data/productsData.js";
+import { newArrivalsProducts } from "../data/productsData.js";
 import CategoriesMarquee from "../components/CategoriesMarquee";
 import { categoriesData } from "../data/categoriesData";
+import { useProducts } from "../hooks/useProducts";
+import InlineLoader from "@/components/ui/InlineLoader";
 
 const Home = () => {
+    const {
+        loading: bestSellingProductsLoading,
+        products: bestSellingProducts,
+        error: bestSellingProductsError,
+    } = useProducts({
+        page: 1,
+        limit: 10,
+        sortBy: "sold",
+        order: "desc",
+    });
+    const {
+        loading: newArrivalsProductsLoading,
+        products: newArrivalsProducts,
+        error: newArrivalsProductsError,
+    } = useProducts({
+        page: 1,
+        limit: 10,
+        sortBy: "createdAt",
+        order: "asc",
+    });
+
+    console.log(bestSellingProducts);
     return (
         <>
             {/* Hero section */}
@@ -29,16 +50,23 @@ const Home = () => {
                         link: "/products",
                     }}
                 >
-                    {newArrivalsProducts.map((p) => (
-                        <ProductCard
-                            key={p.id}
-                            image={p.image}
-                            title={p.title}
-                            price={p.price}
-                            category={p.category}
-                            mrp={p.mrp}
-                        />
-                    ))}
+                    {newArrivalsProductsLoading ? (
+                        <div className='flex h-40 mx-auto'>
+                            <InlineLoader content='' size={"xl"} />
+                        </div>
+                    ) : (
+                        newArrivalsProducts.map((p) => (
+                            <ProductCard
+                                key={p._id}
+                                image={p.images[0]}
+                                title={p.title}
+                                price={p.price}
+                                category={p.category}
+                                mrp={p.mrp}
+                                sold={p.sold}
+                            />
+                        ))
+                    )}
                 </SectionWrapper>
 
                 {/* Best Selling */}
@@ -50,16 +78,23 @@ const Home = () => {
                         link: "/products",
                     }}
                 >
-                    {bestSellingProducts.map((p) => (
-                        <ProductCard
-                            key={p.id}
-                            image={p.image}
-                            title={p.title}
-                            price={p.price}
-                            category={p.category}
-                            mrp={p.mrp}
-                        />
-                    ))}
+                    {bestSellingProductsLoading ? (
+                        <div className='flex h-40 mx-auto'>
+                            <InlineLoader content='' size={"xl"} />
+                        </div>
+                    ) : (
+                        bestSellingProducts.map((p) => (
+                            <ProductCard
+                                key={p._id}
+                                image={p.images[0]}
+                                title={p.title}
+                                price={p.price}
+                                category={p.category}
+                                mrp={p.mrp}
+                                sold={p.sold}
+                            />
+                        ))
+                    )}
                 </SectionWrapper>
             </main>
 
