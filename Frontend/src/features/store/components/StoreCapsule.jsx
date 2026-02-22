@@ -11,7 +11,7 @@ const StoreCard = ({ store, handleStoreChange }) => {
             {/* Accent bar on hover */}
             <span className="absolute left-0 top-1/2 h-0 w-0.5 bg-zinc-900 group-hover:h-6 group-hover:-translate-y-1/2 transition-all rounded-full" />
 
-            <div className="h-8 w-8 rounded-md bg-zinc-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+            <div className="h-8 w-8 rounded-md bg-zinc-200 flex items-center justify-center overflow-hidden">
                 {store.image ? (
                     <img
                         src={store.image?.url}

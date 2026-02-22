@@ -2,7 +2,7 @@ import { ChevronUp, Store, Plus } from "lucide-react";
 import React, { useState } from "react";
 import useVendorStoreStore from "@/stores/useVendorStoreStore";
 import { useNavigate } from "react-router-dom";
-import StoreCard from "./StoreCard";
+import StoreCapsule from "./StoreCapsule";
 
 const StoresList = () => {
     const [open, setOpen] = useState(false);
@@ -66,7 +66,8 @@ const StoresList = () => {
                     {stores
                         .filter((store) => store._id !== currentStore?._id)
                         .map((store) => (
-                            <StoreCard
+                            <StoreCapsule
+                            key={store._id}
                                 store={store}
                                 handleStoreChange={handleStoreChange}
                             />
