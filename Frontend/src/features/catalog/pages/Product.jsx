@@ -1,19 +1,44 @@
-import { Star, Truck, ShieldCheck } from "lucide-react";
+import { Star, Truck, ShieldCheck, MoveRight } from "lucide-react";
 import Button from "@/components/ui/Button";
-import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useProduct } from "../hooks/useProduct";
 import InlineLoader from "@/components/ui/InlineLoader";
 import PhotoMediaGallary from "@/components/ui/ProductMediaGallary";
+import useCartStore from "../stores/useCartStore";
+import { formatPrice } from "@/utils/formatPrice";
 
 const Product = () => {
     const { productId } = useParams();
+    const navigate = useNavigate()
 
     const { loading, product, error } = useProduct({ productId });
     const [quantity, setQuantity] = useState(1);
 
+    const { addToCart, cart } = useCartStore();
+    const [isAlreadyInCart, setIsAlreadyInCart] = useState();
+
+    const handleCart = (productId, quantity) => {
+        addToCart(productId, quantity);
+    };
+
+    useEffect(() => {
+        if (product) {
+            const isAlreadyInCart = cart.find(
+                (item) => item.productId === product?._id,
+            )
+                ? true
+                : false;
+            setIsAlreadyInCart(isAlreadyInCart);
+        }
+    }, [product, cart]);
+
     if (loading) {
-        return <InlineLoader content='' />;
+        return (
+            <div className='flex justify-center items-center h-screen'>
+                <InlineLoader size='xl' content='' />
+            </div>
+        );
     }
 
     if (error) {
@@ -70,7 +95,7 @@ const Product = () => {
                         <div className='space-y-1'>
                             <div className='flex items-center gap-3'>
                                 <span className='text-3xl font-bold text-zinc-900'>
-                                    ₹{product.price}
+                                    {formatPrice(product.price)}
                                 </span>
 
                                 {product.mrp && (
@@ -100,30 +125,64 @@ const Product = () => {
                             {product.name}
                         </p>
 
-                        <div>
-                            <p className='text-sm font-medium mb-2'>Quantity</p>
-                            <div className='flex items-center border border-zinc-200 rounded-lg w-fit'>
-                                <button
-                                    onClick={() =>
-                                        setQuantity((q) => (q > 1 ? q - 1 : 1))
-                                    }
-                                    className='px-4 py-2 text-zinc-500 hover:text-black'
-                                >
-                                    -
-                                </button>
-                                <span className='px-6 text-sm'>{quantity}</span>
-                                <button
-                                    onClick={() => setQuantity((q) => q + 1)}
-                                    className='px-4 py-2 text-zinc-500 hover:text-black'
-                                >
-                                    +
-                                </button>
-                            </div>
-                        </div>
+                        {isAlreadyInCart ? (
+                            <Button
+                                onClick={() =>
+                                    navigate('/cart')
+                                }
+                                size='lg'
+                                className='flex gap-2'
+                            >
+                                Go to Cart <MoveRight />
+                            </Button>
+                        ) : (
+                            <>
+                                <div>
+                                    <p className='text-sm font-medium mb-2'>
+                                        Quantity
+                                    </p>
+                                    <div className='flex items-center border border-zinc-200 rounded-lg w-fit'>
+                                        <button
+                                            onClick={() =>
+                                                setQuantity((q) =>
+                                                    q > 1 ? q - 1 : 1,
+                                                )
+                                            }
+                                            className='px-4 py-2 text-zinc-500 hover:text-black'
+                                        >
+                                            -
+                                        </button>
+                                        <span className='px-6 text-sm'>
+                                            {quantity}
+                                        </span>
+                                        <button
+                                            onClick={() =>
+                                                setQuantity((q) => q + 1)
+                                            }
+                                            className='px-4 py-2 text-zinc-500 hover:text-black'
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
 
-                        <Button size='lg' className='w-full'>
-                            Add to Cart
-                        </Button>
+                                <Button
+                                    disabled={!product.inStock}
+                                    onClick={() =>
+                                        handleCart(product._id, quantity)
+                                    }
+                                    size='lg'
+                                    variant={
+                                        product.inStock ? "primary" : "ghost"
+                                    }
+                                    className='w-full'
+                                >
+                                    {product.inStock
+                                        ? "Add to Cart"
+                                        : "Out of Stock"}
+                                </Button>
+                            </>
+                        )}
 
                         <div className='pt-6 border-t border-zinc-200 space-y-3 text-sm text-zinc-600'>
                             <div className='flex items-center gap-2'>

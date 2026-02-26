@@ -59,18 +59,15 @@ const Navbar = () => {
                                 />
                             </div>
 
-                            <button className='relative text-gray-600 hover:text-black transition'>
+                            <button className='relative text-gray-600 hover:text-black transition cursor-pointer'>
                                 <Heart size={20} />
                             </button>
 
                             <button
                                 onClick={() => navigate("/cart")}
-                                className='relative text-gray-600 hover:text-black transition'
+                                className='relative text-gray-600 hover:text-black transition cursor-pointer'
                             >
                                 <ShoppingCart size={20} />
-                                <span className='absolute -top-2 -right-2 h-4 w-4 rounded-full bg-black text-[10px] text-white flex items-center justify-center'>
-                                    2
-                                </span>
                             </button>
 
                             {currentUser ? (

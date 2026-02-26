@@ -25,7 +25,7 @@ export const useProducts = ({
                     order,
                     storeId,
                 });
-                
+
                 setProducts(data.products);
             } catch (err) {
                 setError(err.message || "Something went wrong!");
@@ -34,7 +34,7 @@ export const useProducts = ({
             }
         };
         loadProducts();
-    }, []);
+    }, [page, limit, sortBy, order, storeId]);
 
     return { products, loading, error };
 };

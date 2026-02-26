@@ -59,11 +59,12 @@ const Home = () => {
                                 key={p._id}
                                 id={p._id}
                                 image={p.images[0]}
-                                title={p.title}
+                                name={p.name}
                                 price={p.price}
                                 category={p.category}
                                 mrp={p.mrp}
                                 sold={p.sold}
+                                inStock={p.inStock}
                             />
                         ))
                     )}
@@ -88,11 +89,12 @@ const Home = () => {
                                 key={p._id}
                                 id={p._id}
                                 image={p.images[0]}
-                                title={p.title}
+                                name={p.name}
                                 price={p.price}
                                 category={p.category}
                                 mrp={p.mrp}
                                 sold={p.sold}
+                                inStock={p.inStock}
                             />
                         ))
                     )}

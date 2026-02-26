@@ -11,6 +11,7 @@ import {
 } from "../middlewares/validate/product.validate.js";
 import {
     createProduct,
+    getCartProducts,
     getMyStoreProducts,
     getProduct,
     getProducts,
@@ -59,30 +60,6 @@ router.get("/products", getProducts);
 router.get("/product/:productId", getProduct);
 
 // Get products by array of IDs (cart)
-router.post("/products/cart", async (req, res) => {
-    const { ids } = req.body;
-
-    if (!ids || !Array.isArray(ids)) {
-        return res
-            .status(400)
-            .json({ message: "Invalid or missing IDs array" });
-    }
-
-    try {
-        const products = await Product.find({ _id: { $in: ids } });
-
-        if (!products || products.length === 0) {
-            return res
-                .status(404)
-                .json({ message: "No products found for given IDs" });
-        }
-
-        res.status(200).json({ message: "Cart Products", products });
-    } catch (error) {
-        res.status(500).json({
-            message: "Server error. please try again later.",
-        });
-    }
-});
+router.get("/products/cart", getCartProducts);
 
 export default router;

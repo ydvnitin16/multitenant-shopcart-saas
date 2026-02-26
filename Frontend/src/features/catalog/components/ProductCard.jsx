@@ -1,16 +1,9 @@
-import Button from "@/components/ui/Button";
 import LazyImage from "@/components/ui/LazyImage";
-import { Heart } from "lucide-react";
+import { formatPrice } from "@/utils/formatPrice";
+import { Heart, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const ProductCard = ({
-    id,
-    image,
-    title,
-    price,
-    mrp,
-    sold = 0,
-}) => {
+const ProductCard = ({ id, image, name, price, mrp, inStock, sold = 0 }) => {
     const navigate = useNavigate();
 
     const hasDiscount = mrp && mrp > price;
@@ -37,56 +30,45 @@ const ProductCard = ({
 
                 <LazyImage
                     src={image?.url}
-                    alt={title}
+                    alt={name}
                     className='h-full w-full object-cover'
                 />
             </div>
 
             {/* Content */}
-            <div className='flex flex-col flex-1'>
-                {/* Title */}
-                <h3 className='text-sm font-semibold text-gray-800 line-clamp-2'>
-                    {title}
-                </h3>
-
-                {/* Price Section */}
-                <div className='mt-3'>
-                    <div className='flex items-center justify-between'>
-                        <div className='flex items-center gap-2'>
-                            <span className='text-base font-bold text-gray-900'>
-                                ₹{price}
-                            </span>
-
-                            {hasDiscount && (
-                                <span className='text-xs text-gray-400 line-through'>
-                                    ₹{mrp}
-                                </span>
-                            )}
-                        </div>
-
-                        {sold > 0 && (
-                            <span className='text-xs text-zinc-500'>
-                                ({sold})
-                            </span>
-                        )}
+            <div className='flex flex-col flex-1 justify-between'>
+                {/* name */}
+                <div>
+                    <h3 className='text-sm font-semibold text-gray-800 line-clamp-2'>
+                        {name}
+                    </h3>
+                    <div className='flex text-emerald-500 mt-1'>
+                        {[1, 2, 3, 4, 5].map((s) => (
+                            <Star
+                                key={s}
+                                size={13}
+                                fill='black'
+                                color='black'
+                            />
+                        ))}
                     </div>
-
-                    {hasDiscount && (
-                        <p className='text-xs text-green-600 font-medium mt-1'>
-                            {discountPercent}% OFF
-                        </p>
-                    )}
                 </div>
 
-                <div className='mt-auto pt-3'>
-                    <Button
-                        onClick={(e) => e.stopPropagation()}
-                        variant='secondary'
-                        size='sm'
-                        className='w-full'
-                    >
-                        Add to Cart
-                    </Button>
+                {/* Price Section */}
+                <div className='flex flex-col  mt-2'>
+                    <div className='flex items-center gap-1'>
+                        {hasDiscount && (
+                            <>
+                                <p className='text-sm text-gray-400 font-medium line-through'>
+                                    {formatPrice(mrp)}
+                                </p>
+                                <p className='text-xs font-medium p-0.5 bg-blue-50 text-blue-600 rounded-sm mt-1'>
+                                    -{discountPercent}%
+                                </p>
+                            </>
+                        )}
+                    </div>
+                    <p className='font-bold text-xl'>{formatPrice(price)}</p>
                 </div>
             </div>
         </div>

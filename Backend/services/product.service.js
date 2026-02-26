@@ -103,3 +103,15 @@ export const getProductByIdService = async (id) => {
 
     return product;
 };
+
+export const getProductsByIdsService = async (ids) => {
+    if (!Array.isArray(ids) || ids.length === 0) {
+        return [];
+    }
+
+    const products = await Product.find({
+        _id: { $in: ids },
+    });
+
+    return products;
+};

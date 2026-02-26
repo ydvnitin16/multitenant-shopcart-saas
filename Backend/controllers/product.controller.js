@@ -1,6 +1,7 @@
 import Product from "../models/product.js";
 import {
     getProductByIdService,
+    getProductsByIdsService,
     getProductsByStoreService,
     getProductsService,
     storeProductService,
@@ -95,4 +96,24 @@ export const getProduct = async (req, res) => {
     const product = await getProductByIdService(productId);
 
     res.status(200).json({ success: true, product });
+};
+
+export const getCartProducts = async (req, res) => {
+    const { ids } = req.query;
+
+    if (!ids) {
+        return res.status(400).json({
+            success: false,
+            message: "Product IDs are required",
+        });
+    }
+
+    const idsArray = ids.split(",");
+
+    const products = await getProductsByIdsService(idsArray);
+
+    return res.status(200).json({
+        success: true,
+        products,
+    });
 };

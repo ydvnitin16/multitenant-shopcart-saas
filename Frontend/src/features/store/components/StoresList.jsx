@@ -39,15 +39,21 @@ const StoresList = () => {
                             )}
                         </div>
                         {/* Green dot */}
-                        <span className='absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white' />
+                        <span
+                            className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ${currentStore.isActive ? "bg-emerald-500" : "bg-red-500"} ring-2 ring-white`}
+                        />
                     </div>
 
                     <div className='text-left min-w-0'>
                         <p className='text-sm font-semibold truncate'>
                             {currentStore?.name || "Select Store"}
                         </p>
-                        <span className='inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600'>
-                            Active store
+                        <span
+                            className={`inline-flex items-center gap-1 text-[11px] font-medium ${currentStore.isActive ? "text-emerald-500" : "text-red-500"} `}
+                        >
+                            {currentStore.isActive
+                                ? "Store Active"
+                                : "Store Inactive"}
                         </span>
                     </div>
                 </div>
@@ -67,7 +73,7 @@ const StoresList = () => {
                         .filter((store) => store._id !== currentStore?._id)
                         .map((store) => (
                             <StoreCapsule
-                            key={store._id}
+                                key={store._id}
                                 store={store}
                                 handleStoreChange={handleStoreChange}
                             />

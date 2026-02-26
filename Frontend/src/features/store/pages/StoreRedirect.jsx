@@ -11,7 +11,7 @@ const StoreRedirect = () => {
         const loadStores = async () => {
             try {
                 const data = await fetchMyStores();
-                console.log(data);
+                
                 const firstStore = data.stores?.[0];
                 if (!firstStore) return;
 
