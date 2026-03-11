@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import useCartStore from "../stores/useCartStore";
-import { getProductsByIds } from "../services/products";
+import useCartStore from "../../../stores/useCartStore";
+import { getProductsByIds } from "../../catalog/services/products";
 
-export const useCartProducts = () => {
+export const useCartItems = () => {
     const cart = useCartStore((state) => state.cart);
 
     const productIds = cart
@@ -10,14 +10,14 @@ export const useCartProducts = () => {
         .sort()
         .join(",");
 
-    const [products, setProducts] = useState([]);
+    const [cartItems, setCartItems] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const fetchCartProducts = async () => {
+        const fetchCartItems = async () => {
             if (cart.length === 0) {
-                setProducts([]);
+                setCartItems([]);
                 return;
             }
 
@@ -29,7 +29,7 @@ export const useCartProducts = () => {
 
                 const data = await getProductsByIds(ids);
 
-                setProducts(data.products);
+                setCartItems(data.products);
             } catch (err) {
                 setError(err.message || "Failed to fetch cart products");
             } finally {
@@ -37,10 +37,10 @@ export const useCartProducts = () => {
             }
         };
 
-        fetchCartProducts();
+        fetchCartItems();
     }, [productIds]);
 
-    const mergedProducts = products.map((product) => {
+    const mergedProducts = cartItems.map((product) => {
         const cartItem = cart.find((item) => item.productId === product._id);
 
         return {
@@ -49,5 +49,5 @@ export const useCartProducts = () => {
         };
     });
 
-    return { products: mergedProducts, loading, error };
+    return { cartItems: mergedProducts, loading, error };
 };

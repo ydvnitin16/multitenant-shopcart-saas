@@ -5,7 +5,7 @@ export const productsData = [
         price: 139900,
         mrp: 149900,
         category: "Smartphones",
-        image: "https://m.media-amazon.com/images/I/618vU2qKXQL.jpg",
+        image: ["https://www.myg.in/images/thumbnails/300/300/detailed/118/Apple-iphone-17-pro-deep-blue-1Tb-Front-Back-View_zvm7-3e.png.png", "https://idealz.lk/wp-content/uploads/2025/09/16-pro-6.jpg", "https://telepunt.nl/wp-content/uploads/iphone_17pro_blauw2_big_image.jpg", "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-17-pro-finish-select-202509-6-9inch_AV3?wid=5120&hei=2880&fmt=webp&qlt=90&.v=NUNzdzNKR0FJbmhKWm5YamRHb05tUzkyK3hWak1ybHhtWDkwUXVINFc0R2MyUjc1U3JwZ2VscGtUR0tSYnFmSGxjZnhHRHJyenVmME5KTm9Sd1ZaU3NqbWRhTGpRM2xxVWJRWUhSaDlCQ3JabWZ0cjBER1RsN1lxWGtBK1RGNUZsWG55WFNZREIrcHRwdlRvMGw2S3BR&traceId=1"],
     },
     {
         id: 2,
@@ -107,7 +107,7 @@ export const bestSellingProducts = [
         vendor: "Apple Hub Store",
         rating: 4.9,
         sold: 1200,
-        image: "https://m.media-amazon.com/images/I/618vU2qKXQL.jpg",
+        image: "https://www.myg.in/images/thumbnails/300/300/detailed/118/Apple-iphone-17-pro-deep-blue-1Tb-Front-Back-View_zvm7-3e.png.png",
     },
     {
         id: 2,

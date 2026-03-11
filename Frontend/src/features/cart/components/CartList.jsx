@@ -1,12 +1,14 @@
 import React from "react";
 import CartListItem from "./CartListItem";
-import { useCartProducts } from "../hooks/useCartProducts";
+import { useCartItems } from "../hooks/useCartItems";
 import InlineLoader from "@/components/ui/InlineLoader";
 import OrderSummary from "./OrderSummary";
-import useCartStore from "../stores/useCartStore";
+import useCartStore from "../../../stores/useCartStore";
+import { useNavigate } from "react-router-dom";
 
 const CartList = () => {
-    const { loading, products, error } = useCartProducts();
+    const navigate = useNavigate();
+    const { loading, cartItems, error } = useCartItems();
     const { removeFromCart, increaseQuantity, decreaseQuantity } =
         useCartStore();
 
@@ -15,7 +17,7 @@ const CartList = () => {
             <div className='lg:col-span-2 bg-white rounded-2xl shadow-sm border border-zinc-200 overflow-hidden'>
                 {/* Table Header */}
                 <div className='grid grid-cols-5 text-xs font-medium text-zinc-500 px-6 py-4 border-b border-zinc-200'>
-                    <span className='col-span-3'>Product</span>
+                    <span className='col-span-3'>Item</span>
                     <span>Price</span>
                     <span>Quantity</span>
                 </div>
@@ -25,14 +27,14 @@ const CartList = () => {
                     <p className='text-red-500'>{error}</p>
                 ) : loading ? (
                     <InlineLoader size='xl' content='' />
-                ) : products.length > 0 ? (
-                    products.map((product) => (
+                ) : cartItems.length > 0 ? (
+                    cartItems.map((item) => (
                         <CartListItem
                             removeFromCart={removeFromCart}
                             increaseQuantity={increaseQuantity}
                             decreaseQuantity={decreaseQuantity}
-                            key={product._id}
-                            product={product}
+                            key={item._id}
+                            item={item}
                         />
                     ))
                 ) : (
@@ -47,7 +49,13 @@ const CartList = () => {
             </div>
 
             {/* ORDER SUMMARY */}
-            {products.length > 0 && <OrderSummary products={products} />}
+            {cartItems.length > 0 && (
+                <OrderSummary
+                    items={cartItems}
+                    buttonLabel='Proceed to Checkout'
+                    onAction={() => navigate("/checkout")}
+                />
+            )}
         </div>
     );
 };

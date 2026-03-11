@@ -18,13 +18,15 @@ import StoreRedirect from "@/features/store/pages/StoreRedirect";
 import RootLayout from "./layouts/RootLayout";
 import Home from "@/features/catalog/pages/Home";
 import Shop from "@/features/catalog/pages/Shop";
-import Cart from "@/features/catalog/pages/Cart";
+import Cart from "@/features/cart/pages/Cart";
 import Product from "@/features/catalog/pages/Product";
 import VendorShop from "@/features/catalog/pages/VendorShop";
 import PublicOnlyRoute from "@/features/authentication/components/PublicOnlyRoute";
 import ProtectedRoute from "@/features/authentication/components/ProtectedRoute";
 import RequestStore from "@/features/store/pages/RequestStore";
 import StoreRequestStatus from "@/features/store/pages/StoreRequestStatus";
+import Checkout from "@/features/cart/pages/Checkout";
+import Orders from "@/features/orders/pages/Orders";
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -33,6 +35,8 @@ const router = createBrowserRouter(
                 <Route index element={<Home />} />
                 <Route path='shop' element={<Shop />} />
                 <Route path='cart' element={<Cart />} />
+                <Route path='checkout' element={<Checkout />} />
+                <Route path='orders' element={<Orders />} />
                 <Route
                     element={
                         <ProtectedRoute

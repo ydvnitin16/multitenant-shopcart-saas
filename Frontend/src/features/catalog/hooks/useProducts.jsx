@@ -11,6 +11,11 @@ export const useProducts = ({
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [pagination, setPagination] = useState({
+        page: 1,
+        pages: 1,
+        total: 0,
+    });
 
     useEffect(() => {
         const loadProducts = async () => {
@@ -25,8 +30,10 @@ export const useProducts = ({
                     order,
                     storeId,
                 });
+                console.log(data);
 
                 setProducts(data.products);
+                setPagination(data.pagination);
             } catch (err) {
                 setError(err.message || "Something went wrong!");
             } finally {
@@ -36,5 +43,5 @@ export const useProducts = ({
         loadProducts();
     }, [page, limit, sortBy, order, storeId]);
 
-    return { products, loading, error };
+    return { products, loading, error, pagination };
 };

@@ -7,7 +7,7 @@ export const useProduct = ({ productId }) => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        const loadProducts = async () => {
+        const loadProduct = async () => {
             try {
                 setLoading(true);
                 setError(null);
@@ -22,7 +22,7 @@ export const useProduct = ({ productId }) => {
             }
         };
         if (productId) {
-            loadProducts();
+            loadProduct();
         }
     }, [productId]);
 

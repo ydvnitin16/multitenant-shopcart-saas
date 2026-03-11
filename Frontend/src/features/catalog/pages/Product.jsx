@@ -5,12 +5,12 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useProduct } from "../hooks/useProduct";
 import InlineLoader from "@/components/ui/InlineLoader";
 import PhotoMediaGallary from "@/components/ui/ProductMediaGallary";
-import useCartStore from "../stores/useCartStore";
+import useCartStore from "../../../stores/useCartStore";
 import { formatPrice } from "@/utils/formatPrice";
 
 const Product = () => {
     const { productId } = useParams();
-    const navigate = useNavigate()
+    const navigate = useNavigate();
 
     const { loading, product, error } = useProduct({ productId });
     const [quantity, setQuantity] = useState(1);
@@ -127,9 +127,7 @@ const Product = () => {
 
                         {isAlreadyInCart ? (
                             <Button
-                                onClick={() =>
-                                    navigate('/cart')
-                                }
+                                onClick={() => navigate("/cart")}
                                 size='lg'
                                 className='flex gap-2'
                             >
