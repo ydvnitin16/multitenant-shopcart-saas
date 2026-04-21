@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { placeOrder } from "../services/orders.js";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export const usePlaceOrder = ({ clearCart }) => {
     const navigate = useNavigate();
@@ -16,15 +17,16 @@ export const usePlaceOrder = ({ clearCart }) => {
 
             if (payload.paymentMethod === "COD") {
                 clearCart?.();
-                navigate('/orders')
+                navigate("/orders");
             }
 
             if (payload.paymentMethod === "STRIPE") {
                 console.log("Stripe flow here");
             }
         } catch (err) {
-            console.error(err);
-            setError(err?.message || "Something went wrong");
+            const message = err?.message || "Something went wrong";
+            toast.error(message);
+            setError(message);
         } finally {
             setLoading(false);
         }

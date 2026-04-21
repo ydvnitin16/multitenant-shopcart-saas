@@ -4,6 +4,7 @@ import useVendorStoreStore from "@/stores/useVendorStoreStore";
 import {
     LucideHome,
     LucideSquarePlus,
+    PackageOpen,
     ShoppingBag,
     SquarePen,
 } from "lucide-react";
@@ -28,6 +29,11 @@ const StoreLayout = () => {
             label: "Manage products",
             slug: `/store/${storeSlug}/manage-products`,
             icon: <SquarePen size={18} />,
+        },
+        {
+            label: "Manage orders",
+            slug: `/store/${storeSlug}/manage-orders`,
+            icon: <PackageOpen size={18} />,
         },
     ];
 

@@ -3,7 +3,7 @@ import OrderItems from "./OrderItems";
 
 const StoreOrderCard = ({ storeOrder }) => {
     return (
-        <div className='px-6 py-5 space-y-4'>
+        <div className='px-6 py-5 space-y-4 border-zinc-100'>
             <div className='flex items-center justify-between'>
                 <div>
                     <p className='font-semibold text-zinc-900'>

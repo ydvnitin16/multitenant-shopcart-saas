@@ -13,6 +13,11 @@ const OrderCard = ({ order }) => {
                         storeOrder={storeOrder}
                     />
                 ))}
+                <div className='px-6 py-4 border-t border-zinc-200 bg-emerald-50 text-sm text-emerald-700'>
+                    Note* Items from different vendors may be shipped
+                    separately. In case of Cash on Delivery pay only for the
+                    items that you have recieved.
+                </div>
             </div>
         </div>
     );

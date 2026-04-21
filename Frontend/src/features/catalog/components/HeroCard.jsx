@@ -14,7 +14,7 @@ const HeroCard = ({
     const navigate = useNavigate();
     return (
         <div
-            className={`relative flex items-center rounded-3xl overflow-hidden min-h-[350px] md:min-h-full ${
+            className={`relative flex items-center rounded-3xl overflow-hidden md:min-h-full ${
                 textAlignment === "left" ? "justify-start" : "justify-end"
             }`}
         >

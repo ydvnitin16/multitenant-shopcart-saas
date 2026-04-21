@@ -1,8 +1,9 @@
 import express from "express";
-import { auth } from "../middlewares/auth.middlewares.js";
+import { allowedRoles, auth } from "../middlewares/auth.middlewares.js";
 import { validateCreateStoreForm } from "../middlewares/validate/store.validate.js";
 import {
     createStoreRequest,
+    getStoreOrders,
     getUserStores,
 } from "../controllers/store.controller.js";
 import multer from "multer";
@@ -18,5 +19,6 @@ router.post(
     createStoreRequest,
 );
 router.get("/user-stores", auth, getUserStores);
+router.get("/orders/:storeId", auth, allowedRoles('VENDOR'), getStoreOrders)
 
 export default router;

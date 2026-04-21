@@ -27,6 +27,7 @@ import RequestStore from "@/features/store/pages/RequestStore";
 import StoreRequestStatus from "@/features/store/pages/StoreRequestStatus";
 import Checkout from "@/features/cart/pages/Checkout";
 import Orders from "@/features/orders/pages/Orders";
+import ManageOrders from "@/features/store/pages/ManageOrders";
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -76,6 +77,10 @@ const router = createBrowserRouter(
                         <Route
                             path='manage-products'
                             element={<ManageProducts />}
+                        />
+                        <Route
+                            path='manage-orders'
+                            element={<ManageOrders />}
                         />
                     </Route>
                 </Route>

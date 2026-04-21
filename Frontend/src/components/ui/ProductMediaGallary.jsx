@@ -6,7 +6,7 @@ const ProductMediaGallary = ({ title, images }) => {
     return (
         <div>
             {/* Main image Preview */}
-            <div className='bg-white rounded-2xl border border-zinc-200 p-8'>
+            <div className='bg-white rounded-2xl border border-zinc-200'>
                 <div className='aspect-square bg-zinc-100 rounded-xl overflow-hidden'>
                     <img
                         src={images[selectedImageIndex ?? 0].url}

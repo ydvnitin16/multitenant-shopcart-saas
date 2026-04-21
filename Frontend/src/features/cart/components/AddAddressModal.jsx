@@ -25,8 +25,8 @@ const AddAddressModal = ({ isOpen, onClose, refetch }) => {
     }
 
     return (
-        <div className='fixed inset-0 bg-black/40 flex items-center justify-center z-50'>
-            <div className='bg-white p-6 rounded-xl w-[600px]'>
+        <div className='fixed inset-0 bg-black/40 h-screen flex items-center justify-center z-50'>
+            <div className='bg-white p-6 rounded-xl max-h-[75vh] min-w-80 overflow-y-auto'>
                 <h2 className='text-xl font-semibold mb-4'>
                     Add Shipping Address
                 </h2>
@@ -42,49 +42,49 @@ const AddAddressModal = ({ isOpen, onClose, refetch }) => {
 
                         <Input
                             label='Email'
-                            placeholder='Email'
+                            placeholder='johndoe@gmail.com'
                             {...register("email")}
                             error={errors.email?.message}
                         />
 
                         <Input
                             label='Phone'
-                            placeholder='Phone'
+                            placeholder='95824678XX'
                             {...register("phone")}
                             error={errors.phone?.message}
                         />
 
                         <Input
                             label='Street'
-                            placeholder='Street'
+                            placeholder='78 street'
                             {...register("street")}
                             error={errors.street?.message}
                         />
 
                         <Input
                             label='City'
-                            placeholder='City'
+                            placeholder='Gurgaon'
                             {...register("city")}
                             error={errors.city?.message}
                         />
 
                         <Input
                             label='State'
-                            placeholder='State'
+                            placeholder='Haryana'
                             {...register("state")}
                             error={errors.state?.message}
                         />
 
                         <Input
                             label='Country'
-                            placeholder='Country'
+                            placeholder='India'
                             {...register("country")}
                             error={errors.country?.message}
                         />
 
                         <Input
                             label='Zip Code'
-                            placeholder='Zip Code'
+                            placeholder='122001'
                             {...register("zipCode")}
                             error={errors.zipCode?.message}
                         />

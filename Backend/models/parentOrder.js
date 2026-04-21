@@ -26,6 +26,6 @@ const parentOrderSchema = new mongoose.Schema(
     { timestamps: true },
 );
 
-const ParentOrder = mongoose.model("parentOrder", parentOrderSchema);
+const ParentOrder = mongoose.model("ParentOrder", parentOrderSchema);
 
 export default ParentOrder;

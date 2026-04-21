@@ -1,12 +1,20 @@
 // import Order from "../models/order.js";
 import Product from "../models/product.js";
-import { getUserOrdersService, placeOrderService } from "../services/order.service.js";
+import ApiError from "../utils/apiError.js";
+import {
+    getUserOrdersService,
+    placeOrderService,
+} from "../services/order.service.js";
 
 // User place order -> save in the DB
 export const placeOrder = async (req, res) => {
     const userId = req.user.id;
 
     const { items, paymentMethod, addressId } = req.body;
+
+    if (!addressId) throw new ApiError(400, "Please fill the address details.");
+    if (!paymentMethod)
+        throw new ApiError(400, "Please select the payment method.");
 
     const order = await placeOrderService({
         userId,

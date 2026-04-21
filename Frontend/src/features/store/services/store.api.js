@@ -26,3 +26,16 @@ export const requestStore = async (data) => {
     }
     return await res.json();
 };
+
+export const fetchStoreOrders = async (storeId) => {
+    const res = await fetch(`${BASE_URL}/store/orders/${storeId}`, {
+        method: "GET",
+        credentials: "include",
+    });
+
+    if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || `Failed to fetch store orders`);
+    }
+    return await res.json();
+};

@@ -2,6 +2,8 @@ import Store from "../models/store.js";
 import ApiError from "../utils/apiError.js";
 import { cloudinary } from "../config/cloudinary.js";
 import streamifier from "streamifier";
+import StoreOrder from "../models/storeOrder.js";
+import OrderItem from "../models/orderItem.js";
 
 export const createStoreService = async ({
     name,
@@ -85,4 +87,22 @@ export const getStoresService = async (query) => {
 export const getStoreService = async (query) => {
     const store = await Store.findOne(query);
     return store;
+};
+
+export const getStoreOrdersService = async (storeId) => {
+    const storeOrders = await StoreOrder.find({ storeId })
+        .populate("addressId")
+        .populate("parentOrderId", "paymentMethod isPaid createdAt")
+        .sort({ createdAt: -1 })
+        .lean();
+
+    for (const order of storeOrders) {
+        const items = await OrderItem.find({
+            storeOrderId: order._id,
+        }).populate("productId", "name images");
+
+        order.items = items;
+    }
+
+    return storeOrders;
 };

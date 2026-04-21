@@ -1,40 +1,48 @@
-import { useEffect, useState } from 'react';
-import { fetchStores } from '../services/store.api.js';
-
 const useStores = ({ status }) => {
+    const { data, loading, error } = useFetch(`/api/stores?status=${status}`);
     const [stores, setStores] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [loadingIds, setLoadingIds] = useState(() => new Set());
 
+    // sync fetched data into local state
     useEffect(() => {
-        const controller = new AbortController();
+        if (data?.stores) setStores(data.stores);
+    }, [data]);
 
-        const loadStores = async () => {
+    const updateStatus = useCallback(
+        async (storeId, newStatus) => {
+            // 1. optimistic update
+            setStores((prev) =>
+                prev.map((s) =>
+                    s._id === storeId ? { ...s, status: newStatus } : s,
+                ),
+            );
+            setLoadingIds((prev) => new Set(prev).add(storeId));
+
             try {
-                setLoading(true);
-                const data = await fetchStores(
-                    {
-                        status,
-                    },
-                    controller.signal
-                );
-                setStores(data.stores);
+                await updateStoreStatus(storeId, newStatus);
             } catch (err) {
-                if (err.name !== 'AbortError') {
-                    setError(err.message);
-                }
+                // 2. rollback on failure
+                setStores(data?.stores ?? []);
+                console.error(err.message);
             } finally {
-                setLoading(false);
+                setLoadingIds((prev) => {
+                    const ids = new Set(prev);
+                    ids.delete(storeId);
+                    return ids;
+                });
             }
-        };
-        loadStores();
+        },
+        [data],
+    );
 
-        return () => {
-            controller.abort();
-        };
-    }, [status]);
-
-    return { stores, setStores, loading, error };
+    return {
+        stores,
+        loading,
+        error,
+        approveStore: (id) => updateStatus(id, "APPROVED"),
+        rejectStore: (id) => updateStatus(id, "REJECTED"),
+        isLoading: (id) => loadingIds.has(id),
+    };
 };
 
 export default useStores;
