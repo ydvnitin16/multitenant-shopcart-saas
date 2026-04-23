@@ -2,9 +2,19 @@ import mongoose from "mongoose";
 
 const storeOrderSchema = new mongoose.Schema(
     {
-        parentOrderId: {
+        parentOrder: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "ParentOrder",
+            required: true,
+        },
+        store: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Store",
+            required: true,
+        },
+        address: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Address",
             required: true,
         },
         totalAmount: {
@@ -12,20 +22,10 @@ const storeOrderSchema = new mongoose.Schema(
             required: true,
             min: 0,
         },
-        storeId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Store",
-            required: true,
-        },
-        addressId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Address",
-            required: true,
-        },
         status: {
             type: String,
-            enum: ["ORDER_PLACED", "SHIPPED", "DELIVERED"],
-            default: "ORDER_PLACED",
+            enum: ["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"],
+            default: "PENDING",
         },
     },
     { timestamps: true },

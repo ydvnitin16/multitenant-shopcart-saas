@@ -1,5 +1,4 @@
 // import Order from "../models/order.js";
-import Product from "../models/product.js";
 import ApiError from "../utils/apiError.js";
 import {
     getUserOrdersService,
@@ -8,19 +7,21 @@ import {
 
 // User place order -> save in the DB
 export const placeOrder = async (req, res) => {
-    const userId = req.user.id;
+    const user = req.user.id;
 
-    const { items, paymentMethod, addressId } = req.body;
+    const { items, paymentMethod, addressId, address } = req.body;
+    const selectedAddress = address || addressId;
 
-    if (!addressId) throw new ApiError(400, "Please fill the address details.");
+    if (!selectedAddress)
+        throw new ApiError(400, "Please fill the address details.");
     if (!paymentMethod)
         throw new ApiError(400, "Please select the payment method.");
 
     const order = await placeOrderService({
-        userId,
+        user,
         items,
         paymentMethod,
-        addressId,
+        address: selectedAddress,
     });
 
     res.status(201).json({
@@ -32,8 +33,8 @@ export const placeOrder = async (req, res) => {
 
 // User history to check order -> get orders for that user
 export const getUserOrders = async (req, res) => {
-    const userId = req.user.id;
-    const orders = await getUserOrdersService(userId);
+    const user = req.user.id;
+    const orders = await getUserOrdersService(user);
 
     res.status(200).json({
         success: true,

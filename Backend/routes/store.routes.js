@@ -3,6 +3,7 @@ import { allowedRoles, auth } from "../middlewares/auth.middlewares.js";
 import { validateCreateStoreForm } from "../middlewares/validate/store.validate.js";
 import {
     createStoreRequest,
+    getStoreFront,
     getStoreOrders,
     getUserStores,
 } from "../controllers/store.controller.js";
@@ -18,7 +19,8 @@ router.post(
     validateCreateStoreForm,
     createStoreRequest,
 );
-router.get("/user-stores", auth, getUserStores);
-router.get("/orders/:storeId", auth, allowedRoles('VENDOR'), getStoreOrders)
+router.get("/me", auth, getUserStores);
+router.get("/:slug/public", getStoreFront);
+router.get("/orders/:storeId", auth, allowedRoles('VENDOR'), getStoreOrders) // add to orders
 
 export default router;

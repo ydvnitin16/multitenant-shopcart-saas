@@ -9,7 +9,7 @@ export const createStoreService = async ({
     name,
     description,
     slug,
-    userId,
+    user,
     image,
     address,
     email,
@@ -19,7 +19,7 @@ export const createStoreService = async ({
     if (isAlreadyExists)
         throw new ApiError(409, "Store with this slug already exists!");
     console.log(image);
-    
+
     // Now upload the image to cloud so that if validation fails or slug already exists the image will not be uploaded on the cloud
     const uploadFromBuffer = () =>
         new Promise((resolve, reject) => {
@@ -45,7 +45,7 @@ export const createStoreService = async ({
         name,
         description: description || "",
         slug,
-        userId,
+        user,
         status: "PENDING",
         image: imageToStore || null,
         isActive: true,
@@ -77,29 +77,29 @@ export const updateStoreStatusService = async ({ storeId, status }) => {
 };
 
 export const getStoresService = async (query) => {
-    const stores = await Store.find(query).populate(
-        "userId",
-        "-password -role ",
-    );
+    const stores = await Store.find(query).populate("user", "-password -role ");
     return stores || [];
 };
 
 export const getStoreService = async (query) => {
     const store = await Store.findOne(query);
+    if (!store) {
+        throw new ApiError(404, "Store not found");
+    }
     return store;
 };
 
 export const getStoreOrdersService = async (storeId) => {
-    const storeOrders = await StoreOrder.find({ storeId })
-        .populate("addressId")
-        .populate("parentOrderId", "paymentMethod isPaid createdAt")
+    const storeOrders = await StoreOrder.find({ store: storeId })
+        .populate("address")
+        .populate("parentOrder", "paymentMethod isPaid createdAt")
         .sort({ createdAt: -1 })
         .lean();
 
     for (const order of storeOrders) {
         const items = await OrderItem.find({
-            storeOrderId: order._id,
-        }).populate("productId", "name images");
+            storeOrder: order._id,
+        }).populate("product", "name images");
 
         order.items = items;
     }

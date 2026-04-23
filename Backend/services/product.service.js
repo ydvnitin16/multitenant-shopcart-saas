@@ -1,36 +1,44 @@
 import Product from "../models/product.js";
-import Store from "../models/store.js";
 import ApiError from "../utils/apiError.js";
 
 export const storeProductService = async ({
     name,
     description,
+    category,
     mrp,
     price,
     images,
-    storeId,
+    stock,
+    store,
 }) => {
     const product = await Product.create({
         name,
         description,
+        category,
         mrp: Number(mrp),
         price: Number(price),
-        images: images,
-        storeId: storeId,
-        inStock: true,
+        images,
+        stock: Number(stock ?? 0),
+        store,
     });
     return product;
 };
 
-export const updateProductService = async (productId, storeId, updates) => {
-    const product = await Product.findOne({ _id: productId, storeId: storeId });
+export const updateProductService = async (productId, store, updates) => {
+    const product = await Product.findOne({ _id: productId, store });
 
     if (!product)
         throw new ApiError(404, "Product does not belong to this store");
 
     const safeUpdates = {};
 
-    const ALLOWED_FIELDS_TO_UPDATE = ["price", "mrp", "description", "inStock"];
+    const ALLOWED_FIELDS_TO_UPDATE = [
+        "price",
+        "mrp",
+        "description",
+        "stock",
+        "category",
+    ];
 
     for (let field of ALLOWED_FIELDS_TO_UPDATE) {
         if (updates[field] !== undefined && updates[field] !== null) {
@@ -43,10 +51,10 @@ export const updateProductService = async (productId, storeId, updates) => {
     return product;
 };
 
-export const getProductsByStoreService = async ({ storeId }) => {
-    const products = await Product.find({ storeId });
+export const getProductsByStoreService = async ({ store }) => {
+    const products = await Product.find({ store });
 
-    const total = await Product.countDocuments({ storeId });
+    const total = await Product.countDocuments({ store });
 
     return {
         products,
@@ -59,14 +67,14 @@ export const getProductsService = async ({
     limit = 10,
     sortBy = "createdAt",
     order = "desc",
-    storeId,
+    store,
 }) => {
     const skip = (page - 1) * limit;
 
     const filter = {};
 
-    if (storeId) {
-        filter.storeId = storeId;
+    if (store) {
+        filter.store = store;
     }
 
     const sortOption = {
@@ -77,7 +85,7 @@ export const getProductsService = async ({
         .sort(sortOption)
         .skip(skip)
         .limit(limit)
-        .populate("storeId", "name slug");
+        .populate("store", "name slug");
 
     const totalProducts = await Product.countDocuments(filter);
 
@@ -92,10 +100,7 @@ export const getProductsService = async ({
 };
 
 export const getProductByIdService = async (id) => {
-    const product = await Product.findOne({ _id: id }).populate(
-        "storeId",
-        "name slug image",
-    );
+    const product = await Product.findOne({ _id: id }).populate("store", "name slug image");
 
     if (!product) {
         throw new ApiError(404, "Product not found");

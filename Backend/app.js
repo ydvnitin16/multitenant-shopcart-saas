@@ -29,7 +29,7 @@ app.use(cookieParser());
 
 // Routes
 app.use('/user', userRoutes);
-app.use('/store', storeRoutes)
+app.use('/stores', storeRoutes)
 app.use('/', productRoutes);
 app.use('/admin', adminRoutes);
 app.use('/orders', orderRoutes);

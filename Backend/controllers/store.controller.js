@@ -1,23 +1,33 @@
 import {
     createStoreService,
     getStoreOrdersService,
+    getStoreService,
     getStoresService,
 } from "../services/store.service.js";
 import ApiSuccess from "../utils/apiSuccess.js";
 
 export const createStoreRequest = async (req, res) => {
-    const userId = req.user.id;
+    const user = req.user.id;
     req.body.image = req.file;
-    const store = await createStoreService({ ...req.body, userId });
+    const store = await createStoreService({ ...req.body, user });
 
     ApiSuccess(res, 201, "Store Request created", { store });
 };
 
 export const getUserStores = async (req, res) => {
-    const userId = req.user.id;
+    const user = req.user.id;
 
-    const stores = await getStoresService({ userId: userId });
+    const stores = await getStoresService({ user });
     ApiSuccess(res, 201, "Store retrieved successfully", { stores });
+};
+
+export const getStoreFront = async (req, res) => {
+    const { slug } = req.params;
+    const store = await getStoreService({ slug });
+    res.status(200).json({
+        success: true,
+        store,
+    });
 };
 
 export const getStoreOrders = async (req, res) => {

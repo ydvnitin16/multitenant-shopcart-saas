@@ -1,10 +1,10 @@
 import ApiError from '../../utils/apiError.js';
 
 const validateProduct = (req, res, next) => {
-    const { name, description, price, mrp } = req.body;
+    const { name, description, category, price, mrp, stock } = req.body;
     const images = req.files;
     console.log(req.body, images)
-    if (!name || !description || !mrp || !price)
+    if (!name || !description || !category || !mrp || !price)
         throw new ApiError(400, 'Please fill all required fields');
 
     if (name.length < 5)
@@ -15,6 +15,9 @@ const validateProduct = (req, res, next) => {
             400,
             'Description must contain at least 10 characters',
         );
+
+    if (category.length < 2)
+        throw new ApiError(400, 'Category must contain at least 2 characters');
 
     if (isNaN(mrp) || Number(mrp) < 1)
         throw new ApiError(
@@ -28,6 +31,12 @@ const validateProduct = (req, res, next) => {
             'Price must be a number greater than or equal to 1',
         );
 
+    if (stock !== undefined && (isNaN(stock) || Number(stock) < 0))
+        throw new ApiError(
+            400,
+            'Stock must be a number greater than or equal to 0',
+        );
+
     if (!images || images.length === 0)
         throw new ApiError(400, 'Please upload at least one product image');
 
@@ -39,9 +48,9 @@ export const validateProductUpdate = (req, res, next) => {
         throw new ApiError(400, 'At least one field is required to update');
     }
     
-    const { price, mrp, description, inStock } = req.body;
+    const { price, mrp, description, category, stock } = req.body;
 
-    const allowedFields = ['price', 'mrp', 'description', 'inStock'];
+    const allowedFields = ['price', 'mrp', 'description', 'category', 'stock'];
     const requestFields = Object.keys(req.body);
 
     if (requestFields.length === 0) {
@@ -86,9 +95,16 @@ export const validateProductUpdate = (req, res, next) => {
         }
     }
 
-    if (inStock !== undefined) {
-        if (typeof inStock !== 'boolean') {
-            throw new ApiError(400, 'inStock must be a boolean value');
+    if (category !== undefined && category.length < 2) {
+        throw new ApiError(400, 'Category must contain at least 2 characters');
+    }
+
+    if (stock !== undefined) {
+        if (isNaN(stock) || Number(stock) < 0) {
+            throw new ApiError(
+                400,
+                'Stock must be a number greater than or equal to 0',
+            );
         }
     }
 

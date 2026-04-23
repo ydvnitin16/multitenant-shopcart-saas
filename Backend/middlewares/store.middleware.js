@@ -6,7 +6,7 @@ export const resolveTenant = async (req, res, next) => {
     const store = await getStoreService({ slug: storeSlug });
     if (!store) throw new ApiError(404, 'Store not found');
 
-    if (store.userId.toString() !== req.user.id.toString()) {
+    if (store.user.toString() !== req.user.id.toString()) {
         throw new ApiError(403, 'This store does not belongs to you');
     }
 

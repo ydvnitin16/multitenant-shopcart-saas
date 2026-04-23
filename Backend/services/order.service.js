@@ -4,16 +4,16 @@ import OrderItem from "../models/orderItem.js";
 import Product from "../models/product.js";
 
 export const placeOrderService = async ({
-    userId,
+    user,
     items,
     paymentMethod,
-    addressId,
+    address,
 }) => {
     /*
     items coming from frontend
 
     [
-        { productId, quantity }
+        { productId, product, quantity }
     ]
     */
 
@@ -21,7 +21,7 @@ export const placeOrderService = async ({
         throw new Error("Cart is empty");
     }
 
-    const productIds = items.map((i) => i.productId);
+    const productIds = items.map((item) => item.product || item.productId);
 
     const products = await Product.find({
         _id: { $in: productIds },
@@ -38,7 +38,7 @@ export const placeOrderService = async ({
     const productMap = {};
 
     products.forEach((product) => {
-        productMap[product._id] = product;
+        productMap[product._id.toString()] = product;
     });
 
     /*
@@ -50,13 +50,14 @@ export const placeOrderService = async ({
     let parentTotal = 0;
 
     for (const item of items) {
-        const product = productMap[item.productId];
+        const requestedProductId = item.product || item.productId;
+        const product = productMap[requestedProductId];
 
         if (!product) {
             throw new Error("Product not found");
         }
 
-        const storeId = product.storeId.toString();
+        const storeId = product.store.toString();
 
         if (!storeGroups[storeId]) {
             storeGroups[storeId] = [];
@@ -68,9 +69,11 @@ export const placeOrderService = async ({
         parentTotal += total;
 
         storeGroups[storeId].push({
-            productId: product._id,
+            product: product._id,
             quantity: item.quantity,
             price,
+            name: product.name,
+            image: product.images[0],
         });
     }
 
@@ -78,13 +81,13 @@ export const placeOrderService = async ({
     Create Parent Order
     */
     console.log({
-        userId,
+        user,
         totalAmount: parentTotal,
         paymentMethod,
         isPaid: paymentMethod === "COD" ? false : true, // stripe will update later
     });
     const parentOrder = await ParentOrder.create({
-        userId,
+        user,
         totalAmount: parentTotal,
         paymentMethod,
         isPaid: paymentMethod === "COD" ? false : true, // stripe will update later
@@ -103,9 +106,9 @@ export const placeOrderService = async ({
         );
 
         const storeOrder = await StoreOrder.create({
-            parentOrderId: parentOrder._id,
-            storeId,
-            addressId,
+            parentOrder: parentOrder._id,
+            store: storeId,
+            address,
             totalAmount: storeTotal,
             isPaid: paymentMethod === "COD" ? false : false,
         });
@@ -115,10 +118,12 @@ export const placeOrderService = async ({
         */
 
         const orderItems = items.map((item) => ({
-            storeOrderId: storeOrder._id,
-            productId: item.productId,
+            storeOrder: storeOrder._id,
+            product: item.product,
             quantity: item.quantity,
             price: item.price,
+            name: item.name,
+            image: item.image,
         }));
 
         await OrderItem.insertMany(orderItems);
@@ -140,9 +145,9 @@ export const placeOrderService = async ({
 
     return parentOrder;
 };
-export const getUserOrdersService = async (userId) => {
+export const getUserOrdersService = async (user) => {
     // 1️⃣ Get parent orders
-    const parentOrders = await ParentOrder.find({ userId })
+    const parentOrders = await ParentOrder.find({ user })
         .sort({ createdAt: -1 })
         .lean();
 
@@ -152,36 +157,38 @@ export const getUserOrdersService = async (userId) => {
 
     // 2️⃣ Get store orders
     const storeOrders = await StoreOrder.find({
-        parentOrderId: { $in: parentOrderIds },
+        parentOrder: { $in: parentOrderIds },
     })
-        .populate("storeId", "name slug")
-        .populate("addressId")
+        .populate("store", "name slug")
+        .populate("address")
         .lean();
 
     const storeOrderIds = storeOrders.map((o) => o._id);
 
     // 3️⃣ Get order items
     const orderItems = await OrderItem.find({
-        storeOrderId: { $in: storeOrderIds },
+        storeOrder: { $in: storeOrderIds },
     })
-        .populate("productId", "name images price slug")
+        .populate("product", "name images price slug")
         .lean();
 
     // 4️⃣ Group items by storeOrder
     const itemsMap = {};
 
     for (const item of orderItems) {
-        const storeId = item.storeOrderId.toString();
+        const storeOrderId = item.storeOrder.toString();
 
-        if (!itemsMap[storeId]) {
-            itemsMap[storeId] = [];
+        if (!itemsMap[storeOrderId]) {
+            itemsMap[storeOrderId] = [];
         }
 
-        itemsMap[storeId].push({
+        itemsMap[storeOrderId].push({
             _id: item._id,
-            product: item.productId,
+            product: item.product,
             quantity: item.quantity,
             price: item.price,
+            name: item.name,
+            image: item.image,
         });
     }
 
@@ -189,7 +196,7 @@ export const getUserOrdersService = async (userId) => {
     const storeOrdersMap = {};
 
     for (const order of storeOrders) {
-        const parentId = order.parentOrderId.toString();
+        const parentId = order.parentOrder.toString();
 
         if (!storeOrdersMap[parentId]) {
             storeOrdersMap[parentId] = [];
@@ -197,8 +204,8 @@ export const getUserOrdersService = async (userId) => {
 
         storeOrdersMap[parentId].push({
             _id: order._id,
-            store: order.storeId,
-            address: order.addressId,
+            store: order.store,
+            address: order.address,
             status: order.status,
             totalAmount: order.totalAmount,
             items: itemsMap[order._id.toString()] || [],

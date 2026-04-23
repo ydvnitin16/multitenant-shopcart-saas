@@ -11,7 +11,7 @@ export const updateStoreStatus = async (req, res) => {
     const store = await updateStoreStatusService({ storeId, status });
 
     if (store.status === 'APPROVED')
-        updateUserRole({ userId: store.userId, role: 'VENDOR' });
+        updateUserRole({ userId: store.user, role: 'VENDOR' });
 
     ApiSuccess(res, 200, `Store ${status}`, store);
 };

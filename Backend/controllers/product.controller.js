@@ -11,7 +11,7 @@ import ApiSuccess from "../utils/apiSuccess.js";
 
 // Admin -> Add product
 export const createProduct = async (req, res) => {
-    const storeId = req.store._id;
+    const store = req.store._id;
     const files = req.files;
 
     // attach images to the product
@@ -25,7 +25,7 @@ export const createProduct = async (req, res) => {
     });
     req.body.images = productImages;
 
-    const product = await storeProductService({ ...req.body, storeId });
+    const product = await storeProductService({ ...req.body, store });
 
     ApiSuccess(res, 200, "Product created successfully", { product });
 };
@@ -53,11 +53,11 @@ export const deleteProduct = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
     const { productId } = req.params;
-    const storeId = req.store._id;
+    const store = req.store._id;
 
     const updatedProduct = await updateProductService(
         productId,
-        storeId,
+        store,
         req.body,
     );
     ApiSuccess(res, 200, "Product Updated Successfully.", {
@@ -66,8 +66,8 @@ export const updateProduct = async (req, res) => {
 };
 
 export const getMyStoreProducts = async (req, res) => {
-    const storeId = req.store._id;
-    const { products, total } = await getProductsByStoreService({ storeId });
+    const store = req.store._id;
+    const { products, total } = await getProductsByStoreService({ store });
     ApiSuccess(res, 200, "Product Updated Successfully.", {
         products,
         total,
@@ -75,14 +75,14 @@ export const getMyStoreProducts = async (req, res) => {
 };
 
 export const getProducts = async (req, res) => {
-    const { page, limit, sortBy, order, storeId } = req.query;
+    const { page, limit, sortBy, order, storeId, store } = req.query;
 
     const data = await getProductsService({
         page: Number(page) || 1,
         limit: Number(limit) || 10,
         sortBy: sortBy || "createdAt",
         order: order || "desc",
-        storeId,
+        store: store || storeId,
     });
 
     res.status(200).json({

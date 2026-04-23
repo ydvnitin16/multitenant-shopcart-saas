@@ -4,11 +4,11 @@ import {
 } from "../services/address.service.js";
 
 export const addAddress = async (req, res) => {
-    const userId = req.user.id;
+    const user = req.user.id;
 
     const address = await addAddressService({
         ...req.body,
-        userId,
+        user,
     });
 
     res.status(201).json({
@@ -18,9 +18,9 @@ export const addAddress = async (req, res) => {
 };
 
 export const fetchAddresses = async (req, res) => {
-    const userId = req.user.id;
+    const user = req.user.id;
 
-    const addresses = await getUserAddressesService(userId);
+    const addresses = await getUserAddressesService(user);
 
     res.json({
         success: true,

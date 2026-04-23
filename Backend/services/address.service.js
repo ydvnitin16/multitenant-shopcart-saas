@@ -6,6 +6,6 @@ export const addAddressService = async (data) => {
     return address;
 };
 
-export const getUserAddressesService = async (userId) => {
-    return await Address.find({ userId });
+export const getUserAddressesService = async (user) => {
+    return await Address.find({ user });
 };
