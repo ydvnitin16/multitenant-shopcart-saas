@@ -1,32 +1,22 @@
-import { useEffect, useState } from "react";
-import { fetchMyStores } from "../services/store.api";
+import useFetch from "@/hooks/useFetch";
+import { useMemo } from "react";
 
 export const useStores = ({ status = "ALL" }) => {
-    const [stores, setStores] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const { data, loading, error, reFetch } = useFetch("stores/me");
 
-    useEffect(() => {
-        const fetchStores = async () => {
-            try {
-                const data = await fetchMyStores();
-                let stores = data?.stores || [];
+    const stores = useMemo(() => {
+        const storeList = data?.stores || [];
+        if (status === "ALL") {
+            return storeList;
+        }
 
-                stores =
-                    status === "ALL" || !stores.length > 0
-                        ? stores
-                        : stores.filter((s) => s.status === status);
+        return storeList.filter((store) => store.status === status);
+    }, [data?.stores, status]);
 
-                setStores(stores);
-            } catch (err) {
-                setError("Failed to fetch request.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchStores();
-    }, []);
-
-    return { stores, loading, error };
+    return {
+        stores,
+        loading,
+        error: error?.message || null,
+        refetch: reFetch,
+    };
 };

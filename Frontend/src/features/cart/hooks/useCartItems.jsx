@@ -41,7 +41,9 @@ export const useCartItems = () => {
     }, [productIds]);
 
     const mergedProducts = cartItems.map((product) => {
-        const cartItem = cart.find((item) => item.productId === product._id);
+        const cartItem = cart.find(
+            (item) => item.productId === product._id?.toString(),
+        );
 
         return {
             ...product,

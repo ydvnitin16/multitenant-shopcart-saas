@@ -27,6 +27,24 @@ const storeSchema = new mongoose.Schema(
         },
         email: { type: String, required: true },
         contact: { type: String, required: true },
+        subscriptionPlan: {
+            type: String,
+            enum: ["FREE", "STARTER", "PRO"],
+            default: "FREE",
+        },
+        subscriptionStatus: {
+            type: String,
+            enum: ["ACTIVE", "EXPIRED", "CANCELLED"],
+            default: "EXPIRED",
+        },
+        subscriptionExpiresAt: {
+            type: Date,
+            default: null,
+        },
+        stripeCustomerId: {
+            type: String,
+            default: null,
+        },
     },
     { timestamps: true },
 );

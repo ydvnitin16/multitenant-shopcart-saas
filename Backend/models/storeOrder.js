@@ -22,6 +22,12 @@ const storeOrderSchema = new mongoose.Schema(
             required: true,
             min: 0,
         },
+        vendorEarnings: {
+            type: Number,
+            required: true,
+            min: 0,
+            default: 0,
+        },
         status: {
             type: String,
             enum: ["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"],

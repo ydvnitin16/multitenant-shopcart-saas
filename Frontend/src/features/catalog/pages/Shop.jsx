@@ -114,7 +114,7 @@ const Shop = () => {
                                     category={p.category}
                                     mrp={p.mrp}
                                     sold={p.sold}
-                                    inStock={p.inStock}
+                                    inStock={Number(p.stock) > 0}
                                 />
                             ))}
                         </div>

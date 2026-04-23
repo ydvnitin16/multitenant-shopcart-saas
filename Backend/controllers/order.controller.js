@@ -16,6 +16,12 @@ export const placeOrder = async (req, res) => {
         throw new ApiError(400, "Please fill the address details.");
     if (!paymentMethod)
         throw new ApiError(400, "Please select the payment method.");
+    if (paymentMethod === "ONLINE") {
+        throw new ApiError(
+            400,
+            "Online payment checkout is not available yet.",
+        );
+    }
 
     const order = await placeOrderService({
         user,

@@ -3,10 +3,6 @@ import React from "react";
 const PaymentSelector = ({ paymentMethod, setPaymentMethod }) => {
     const methods = [
         {
-            id: "STRIPE",
-            label: "Credit / Debit Card",
-        },
-        {
             id: "COD",
             label: "Cash on Delivery",
         },

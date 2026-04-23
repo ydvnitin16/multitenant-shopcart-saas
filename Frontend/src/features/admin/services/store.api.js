@@ -1,35 +1,18 @@
-const BASE_URL = import.meta.env.VITE_SERVER_URL;
+import { fetchService } from "@/services/fetchService";
 
 export const fetchStores = async (params = {}, signal) => {
     const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${BASE_URL}/admin/stores?${query}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        credentials: 'include',
+    return fetchService({
+        endpoint: query ? `admin/stores?${query}` : "admin/stores",
+        method: "GET",
         signal,
     });
-    if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to fetch stores');
-    }
-    return await res.json();
 };
 
 export const updateStoreStatus = async (storeId, status) => {
-    const res = await fetch(`${BASE_URL}/admin/store/${storeId}/status`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ status: status }),
+    return fetchService({
+        endpoint: `admin/store/${storeId}/status`,
+        method: "PUT",
+        body: { status },
     });
-
-    if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to fetch stores');
-    }
-    return await res.json();
 };

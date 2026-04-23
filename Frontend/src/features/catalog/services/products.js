@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_SERVER_URL;
+import { fetchService } from "@/services/fetchService";
 
 export const getProducts = async ({
     page = 1,
@@ -6,46 +6,36 @@ export const getProducts = async ({
     sortBy = "createdAt",
     order = "desc",
     storeId,
+    store,
 }) => {
-    const res = await fetch(
-        `${BASE_URL}/products?sortBy=${sortBy}&order=${order}&page=${page}&limit=${limit}`,
-        {
-            method: "GET",
-            credentials: "include",
-        },
-    );
+    const params = new URLSearchParams({
+        sortBy,
+        order,
+        page: String(page),
+        limit: String(limit),
+    });
 
-    if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || `Failed to fetch products`);
+    if (store || storeId) {
+        params.set("store", store || storeId);
     }
-    return await res.json();
+
+    return fetchService({
+        endpoint: `products?${params.toString()}`,
+        method: "GET",
+    });
 };
 
 export const getProductById = async (id) => {
-    const res = await fetch(`${BASE_URL}/product/${id}`, {
+    return fetchService({
+        endpoint: `product/${id}`,
         method: "GET",
-        credentials: "include",
     });
-
-    if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || `Failed to fetch product`);
-    }
-    return await res.json();
 };
 
 export const getProductsByIds = async (productIds) => {
     const ids = productIds.join(",");
-    
-    const res = await fetch(`${BASE_URL}/products/cart/?ids=${ids}`, {
+    return fetchService({
+        endpoint: `products/cart?ids=${ids}`,
         method: "GET",
-        credentials: "include",
     });
-
-    if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || `Failed to fetch cart products`);
-    }
-    return await res.json();
 };

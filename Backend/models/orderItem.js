@@ -13,14 +13,8 @@ const orderItemSchema = new mongoose.Schema({
         required: true,
     },
     price: { type: Number, required: true },
-    name: { type: String, required: true },
-    image: {
-        type: {
-            url: { type: String, required: true },
-            public_id: { type: String, required: true },
-        },
-        required: true,
-    },
+    productNameSnapshot: { type: String, required: true },
+    productImageSnapshot: { type: String, required: true },
 });
 
 const OrderItem = mongoose.model("OrderItem", orderItemSchema);

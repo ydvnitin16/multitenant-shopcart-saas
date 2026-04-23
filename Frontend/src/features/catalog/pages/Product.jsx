@@ -76,7 +76,7 @@ const Product = () => {
                     {/* product Info */}
                     <div className='space-y-6'>
                         <h1 className='text-2xl font-semibold text-zinc-900'>
-                            {product.title}
+                            {product.name}
                         </h1>
 
                         <div className='flex items-center gap-2 text-sm text-zinc-600'>
@@ -110,7 +110,7 @@ const Product = () => {
                                 )}
                             </div>
 
-                            {product.inStock ? (
+                            {Number(product.stock) > 0 ? (
                                 <p className='text-sm text-emerald-600 font-medium'>
                                     In Stock • Ready to ship
                                 </p>
@@ -165,17 +165,19 @@ const Product = () => {
                                 </div>
 
                                 <Button
-                                    disabled={!product.inStock}
+                                    disabled={Number(product.stock) <= 0}
                                     onClick={() =>
                                         handleCart(product._id, quantity)
                                     }
                                     size='lg'
                                     variant={
-                                        product.inStock ? "primary" : "ghost"
+                                        Number(product.stock) > 0
+                                            ? "primary"
+                                            : "ghost"
                                     }
                                     className='w-full'
                                 >
-                                    {product.inStock
+                                    {Number(product.stock) > 0
                                         ? "Add to Cart"
                                         : "Out of Stock"}
                                 </Button>
@@ -198,15 +200,15 @@ const Product = () => {
                 <div className='gap-3 px-6 mt-6 flex items-center '>
                     <img
                         className='rounded-full h-10 w-10 border border-zinc-200 p-1'
-                        src={product.storeId?.image?.url}
-                        alt={product.storeId.name}
+                        src={product.store?.image?.url}
+                        alt={product.store?.name}
                     />
                     <div>
                         <p className='text-base font-semibold text-zinc-900'>
-                            {product.storeId.name}
+                            {product.store?.name}
                         </p>
                         <a
-                            href={`/vendor/${product.storeId.slug}`}
+                            href={`/vendor/${product.store?.slug}`}
                             className='text-sm font-medium text-emerald-600 hover:underline'
                         >
                             Visit Shop →

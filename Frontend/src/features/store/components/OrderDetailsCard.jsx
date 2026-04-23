@@ -2,7 +2,12 @@ import Button from "@/components/ui/Button";
 import { formatPrice } from "@/utils/formatPrice";
 
 const OrderDetailsCard = ({ order, onClose }) => {
-    const address = order.addressId;
+    const address = order.address;
+    const parentOrder = order.parentOrder;
+
+    if (!address) {
+        return null;
+    }
 
     return (
         <div className='fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4'>
@@ -32,13 +37,19 @@ const OrderDetailsCard = ({ order, onClose }) => {
                     {order.items.map((item) => (
                         <div key={item._id} className='flex items-center gap-3'>
                             <img
-                                src={item.productId.images[0].url}
+                                src={
+                                    item.product?.images?.[0]?.url ||
+                                    item.productImageSnapshot ||
+                                    item.image
+                                }
                                 className='w-12 h-12 rounded object-cover'
                             />
 
                             <div className='flex-1 text-sm'>
                                 <p className='font-medium'>
-                                    {item.productId.name}
+                                    {item.product?.name ||
+                                        item.productNameSnapshot ||
+                                        item.name}
                                 </p>
 
                                 <p className='text-zinc-500'>
@@ -54,9 +65,9 @@ const OrderDetailsCard = ({ order, onClose }) => {
                 </div>
 
                 <div className='border-t pt-3 text-sm space-y-1'>
-                    <p>Payment Method: {order.parentOrderId.paymentMethod}</p>
+                    <p>Payment Method: {parentOrder?.paymentMethod}</p>
 
-                    <p>Paid: {order.parentOrderId.isPaid ? "Yes" : "No"}</p>
+                    <p>Paid: {parentOrder?.isPaid ? "Yes" : "No"}</p>
 
                     <p>Status: {order.status}</p>
 

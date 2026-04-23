@@ -16,7 +16,7 @@ export const createStoreRequest = async (req, res) => {
 
 export const getUserStores = async (req, res) => {
     const user = req.user.id;
-
+    
     const stores = await getStoresService({ user });
     ApiSuccess(res, 201, "Store retrieved successfully", { stores });
 };

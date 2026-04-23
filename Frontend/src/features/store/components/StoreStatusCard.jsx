@@ -45,7 +45,12 @@ const StoreStatusCard = ({ request }) => {
                                 {current.title}
                             </h1>
                             <p className='text-sm text-zinc-500 mt-1'>
-                                Submitted on {request.submittedAt}
+                                Submitted on{" "}
+                                {request.createdAt
+                                    ? new Date(
+                                          request.createdAt,
+                                      ).toLocaleDateString()
+                                    : "N/A"}
                             </p>
                         </div>
                     </div>

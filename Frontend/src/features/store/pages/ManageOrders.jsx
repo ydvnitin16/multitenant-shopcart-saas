@@ -57,11 +57,11 @@ const ManageOrders = () => {
                                     </td>
 
                                     <td className='px-6 py-4 font-medium'>
-                                        {order.addressId.name}
+                                        {order.address?.name}
                                     </td>
 
                                     <td className='px-6 py-4 font-medium'>
-                                        {order.parentOrderId.paymentMethod}
+                                        {order.parentOrder?.paymentMethod}
                                     </td>
 
                                     <td className='px-6 py-4'>

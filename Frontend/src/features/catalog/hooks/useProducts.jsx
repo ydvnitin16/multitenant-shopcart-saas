@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { getProducts } from "../services/products";
+import useFetch from "@/hooks/useFetch";
+import { useMemo } from "react";
 
 export const useProducts = ({
     page = 1,
@@ -7,41 +7,34 @@ export const useProducts = ({
     sortBy = "createdAt",
     order = "desc",
     storeId,
+    store,
 }) => {
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [pagination, setPagination] = useState({
-        page: 1,
-        pages: 1,
-        total: 0,
-    });
+    const params = useMemo(() => {
+        const searchParams = new URLSearchParams({
+            page: String(page),
+            limit: String(limit),
+            sortBy,
+            order,
+        });
 
-    useEffect(() => {
-        const loadProducts = async () => {
-            try {
-                setLoading(true);
-                setError(null);
+        if (store || storeId) {
+            searchParams.set("store", store || storeId);
+        }
 
-                const data = await getProducts({
-                    page,
-                    limit,
-                    sortBy,
-                    order,
-                    storeId,
-                });
-                console.log(data);
+        return searchParams.toString();
+    }, [limit, order, page, sortBy, store, storeId]);
 
-                setProducts(data.products);
-                setPagination(data.pagination);
-            } catch (err) {
-                setError(err.message || "Something went wrong!");
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadProducts();
-    }, [page, limit, sortBy, order, storeId]);
+    const { data, loading, error, reFetch } = useFetch(`products?${params}`);
 
-    return { products, loading, error, pagination };
+    return {
+        products: data?.products || [],
+        loading,
+        error: error?.message || null,
+        pagination: data?.pagination || {
+            page: 1,
+            pages: 1,
+            total: 0,
+        },
+        refetch: reFetch,
+    };
 };

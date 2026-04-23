@@ -18,7 +18,6 @@ export const createStoreService = async ({
     const isAlreadyExists = await Store.findOne({ slug });
     if (isAlreadyExists)
         throw new ApiError(409, "Store with this slug already exists!");
-    console.log(image);
 
     // Now upload the image to cloud so that if validation fails or slug already exists the image will not be uploaded on the cloud
     const uploadFromBuffer = () =>
@@ -48,7 +47,7 @@ export const createStoreService = async ({
         user,
         status: "PENDING",
         image: imageToStore || null,
-        isActive: true,
+        isActive: false,
         address,
         email,
         contact,

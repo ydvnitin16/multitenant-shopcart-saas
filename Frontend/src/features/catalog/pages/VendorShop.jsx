@@ -1,12 +1,51 @@
 import { useParams } from "react-router-dom";
-import { vendorsData } from "../data/vendorsData";
 import ProductCard from "../components/ProductCard";
-import { productsData } from "../data/productsData";
+import { useProducts } from "../hooks/useProducts";
+import useFetch from "@/hooks/useFetch";
+import InlineLoader from "@/components/ui/InlineLoader";
 
 const VendorShop = () => {
     const { storeSlug } = useParams();
-    const store = vendorsData[2];
-    const product = productsData[0];
+    const { data, loading, error } = useFetch(
+        storeSlug ? `stores/${storeSlug}/public` : null,
+        {},
+        { enabled: Boolean(storeSlug) },
+    );
+    const store = data?.store;
+    const {
+        products,
+        loading: productsLoading,
+        error: productsError,
+    } = useProducts({
+        store: store?._id,
+        limit: 50,
+    });
+    const errorMessage = error?.message || productsError;
+
+    if (loading || productsLoading) {
+        return (
+            <div className='flex min-h-screen items-center justify-center'>
+                <InlineLoader content='Loading store...' />
+            </div>
+        );
+    }
+
+    if (errorMessage) {
+        return (
+            <div className='flex min-h-screen items-center justify-center text-red-600'>
+                {errorMessage}
+            </div>
+        );
+    }
+
+    if (!store) {
+        return (
+            <div className='flex min-h-screen items-center justify-center text-zinc-600'>
+                Store not found.
+            </div>
+        );
+    }
+
     return (
         <div className='bg-zinc-50 min-h-screen pb-16'>
             {/* Cover Section */}
@@ -19,7 +58,7 @@ const VendorShop = () => {
                         {/* Left Side */}
                         <div className='flex items-start gap-5'>
                             <img
-                                src={store.logo}
+                                src={store.image?.url}
                                 className='w-20 h-20 rounded-2xl object-cover shadow-sm'
                             />
 
@@ -27,7 +66,7 @@ const VendorShop = () => {
                                 <h1 className='text-2xl font-semibold text-zinc-900'>
                                     {store.name}{" "}
                                     <span className='bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-md text-xs font-medium'>
-                                        {store.category ?? "Fashion"}
+                                        {store.subscriptionPlan ?? "FREE"}
                                     </span>
                                 </h1>
 
@@ -58,7 +97,7 @@ const VendorShop = () => {
                                         SUPPORT EMAIL
                                     </p>
                                     <p className='font-medium text-zinc-900'>
-                                        support@techhaven.com
+                                        {store.email}
                                     </p>
                                 </div>
 
@@ -67,7 +106,7 @@ const VendorShop = () => {
                                         HEADQUARTERS
                                     </p>
                                     <p className='font-medium text-zinc-900'>
-                                        San Francisco, CA
+                                        {store.address}
                                     </p>
                                 </div>
 
@@ -91,17 +130,24 @@ const VendorShop = () => {
                     <h2 className='text-xl font-semibold text-zinc-900'>
                         Products
                     </h2>
-                    <p className='text-sm text-zinc-500'>Showing 24 products</p>
+                    <p className='text-sm text-zinc-500'>
+                        Showing {products.length} products
+                    </p>
                 </div>
 
                 <div className='grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'>
-                    {/* Product Card */}
-                    <ProductCard
-                        title={product.title}
-                        image={product.image[1]}
-                        price={product.price}
-                        mrp={product.mrp}
-                    />
+                    {products.map((product) => (
+                        <ProductCard
+                            key={product._id}
+                            id={product._id}
+                            image={product.images?.[0]}
+                            name={product.name}
+                            price={product.price}
+                            mrp={product.mrp}
+                            inStock={Number(product.stock) > 0}
+                            sold={product.sold}
+                        />
+                    ))}
                 </div>
             </div>
         </div>

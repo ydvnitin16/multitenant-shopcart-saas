@@ -1,30 +1,16 @@
-const BASE_URL = import.meta.env.VITE_SERVER_URL;
+import { fetchService } from "@/services/fetchService";
 
 export const placeOrder = async (data) => {
-    console.log(data);
-    const res = await fetch(`${BASE_URL}/orders/place-order`, {
+    return fetchService({
+        endpoint: "orders/place-order",
         method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: data,
     });
-
-    if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || `Failed to place order`);
-    }
-    return await res.json();
 };
 
 export const getOrders = async () => {
-    const res = await fetch(`${BASE_URL}/orders/my-orders`, {
+    return fetchService({
+        endpoint: "orders/my-orders",
         method: "GET",
-        credentials: "include",
     });
-
-    if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || `Failed to fetch orders`);
-    }
-    return await res.json();
 };

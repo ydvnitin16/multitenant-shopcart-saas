@@ -119,9 +119,9 @@ const StoreDetailsModal = ({ store, onClose }) => {
                         </h3>
 
                         <div className="flex items-center gap-4 p-4 bg-zinc-50 border border-zinc-200 rounded-xl">
-                            {store.userId?.image ? (
+                            {store.user?.image ? (
                                 <img
-                                    src={store.userId.image.url}
+                                    src={store.user.image.url}
                                     alt="Owner"
                                     className="w-12 h-12 rounded-full object-cover"
                                 />
@@ -133,10 +133,10 @@ const StoreDetailsModal = ({ store, onClose }) => {
 
                             <div>
                                 <p className="font-medium text-zinc-900">
-                                    {store.userId?.name || 'Unknown Owner'}
+                                    {store.user?.name || 'Unknown Owner'}
                                 </p>
                                 <p className="text-sm text-zinc-500">
-                                    {store.userId?.email}
+                                    {store.user?.email}
                                 </p>
                             </div>
                         </div>

@@ -2,6 +2,37 @@ import ParentOrder from "../models/parentOrder.js";
 import StoreOrder from "../models/storeOrder.js";
 import OrderItem from "../models/orderItem.js";
 import Product from "../models/product.js";
+import Address from "../models/address.js";
+import ApiError from "../utils/apiError.js";
+
+const normalizeOrderItems = (items) => {
+    const normalizedItemsMap = new Map();
+
+    for (const item of items) {
+        const productId = item.product || item.productId;
+        const quantity = Number(item.quantity);
+
+        if (!productId) {
+            throw new ApiError(400, "Each order item must include a product.");
+        }
+
+        if (!Number.isInteger(quantity) || quantity < 1) {
+            throw new ApiError(
+                400,
+                "Each order item quantity must be a positive integer.",
+            );
+        }
+
+        if (normalizedItemsMap.has(productId)) {
+            normalizedItemsMap.get(productId).quantity += quantity;
+            continue;
+        }
+
+        normalizedItemsMap.set(productId, { productId, quantity });
+    }
+
+    return Array.from(normalizedItemsMap.values());
+};
 
 export const placeOrderService = async ({
     user,
@@ -18,22 +49,34 @@ export const placeOrderService = async ({
     */
 
     if (!items || items.length === 0) {
-        throw new Error("Cart is empty");
+        throw new ApiError(400, "Cart is empty.");
     }
 
-    const productIds = items.map((item) => item.product || item.productId);
+    if (!["COD", "ONLINE"].includes(paymentMethod)) {
+        throw new ApiError(400, "Invalid payment method.");
+    }
+
+    const deliveryAddress = await Address.findOne({
+        _id: address,
+        user,
+    }).lean();
+
+    if (!deliveryAddress) {
+        throw new ApiError(404, "Address not found.");
+    }
+
+    const normalizedItems = normalizeOrderItems(items);
+    const productIds = normalizedItems.map((item) => item.productId);
 
     const products = await Product.find({
         _id: { $in: productIds },
-    });
+    })
+        .populate("store", "name isActive status")
+        .lean();
 
-    if (products.length === 0) {
-        throw new Error("Products not found");
+    if (products.length !== productIds.length) {
+        throw new ApiError(404, "One or more products were not found.");
     }
-
-    /*
-    Map products by id for fast lookup
-    */
 
     const productMap = {};
 
@@ -41,106 +84,137 @@ export const placeOrderService = async ({
         productMap[product._id.toString()] = product;
     });
 
-    /*
-    Group products by store
-    */
-
     const storeGroups = {};
-
     let parentTotal = 0;
 
-    for (const item of items) {
-        const requestedProductId = item.product || item.productId;
-        const product = productMap[requestedProductId];
+    for (const item of normalizedItems) {
+        const product = productMap[item.productId];
+        const store = product.store;
 
-        if (!product) {
-            throw new Error("Product not found");
+        if (!store?.isActive || store.status !== "APPROVED") {
+            throw new ApiError(
+                400,
+                `${store?.name || "This store"} is currently unavailable.`,
+            );
         }
 
-        const storeId = product.store.toString();
+        if (product.stock < item.quantity) {
+            throw new ApiError(
+                400,
+                `${product.name} is out of stock for the requested quantity.`,
+            );
+        }
+
+        const storeId = store._id.toString();
 
         if (!storeGroups[storeId]) {
-            storeGroups[storeId] = [];
+            storeGroups[storeId] = {
+                store: store._id,
+                items: [],
+                totalAmount: 0,
+            };
         }
 
         const price = product.price;
         const total = price * item.quantity;
 
         parentTotal += total;
-
-        storeGroups[storeId].push({
+        storeGroups[storeId].totalAmount += total;
+        storeGroups[storeId].items.push({
             product: product._id,
             quantity: item.quantity,
             price,
-            name: product.name,
-            image: product.images[0],
+            productNameSnapshot: product.name,
+            productImageSnapshot: product.images?.[0]?.url || "",
         });
     }
 
-    /*
-    Create Parent Order
-    */
-    console.log({
-        user,
-        totalAmount: parentTotal,
-        paymentMethod,
-        isPaid: paymentMethod === "COD" ? false : true, // stripe will update later
-    });
-    const parentOrder = await ParentOrder.create({
-        user,
-        totalAmount: parentTotal,
-        paymentMethod,
-        isPaid: paymentMethod === "COD" ? false : true, // stripe will update later
-    });
+    const decrementedProducts = [];
+    let parentOrder = null;
+    const createdStoreOrderIds = [];
 
-    /*
-    Create Store Orders
-    */
+    try {
+        for (const item of normalizedItems) {
+            const updatedProduct = await Product.findOneAndUpdate(
+                {
+                    _id: item.productId,
+                    stock: { $gte: item.quantity },
+                },
+                {
+                    $inc: {
+                        stock: -item.quantity,
+                    },
+                },
+                { new: true },
+            );
 
-    for (const storeId in storeGroups) {
-        const items = storeGroups[storeId];
+            if (!updatedProduct) {
+                throw new ApiError(
+                    400,
+                    "One or more items are out of stock. Please refresh your cart.",
+                );
+            }
 
-        const storeTotal = items.reduce(
-            (acc, item) => acc + item.price * item.quantity,
-            0,
-        );
+            decrementedProducts.push(item);
+        }
 
-        const storeOrder = await StoreOrder.create({
-            parentOrder: parentOrder._id,
-            store: storeId,
-            address,
-            totalAmount: storeTotal,
-            isPaid: paymentMethod === "COD" ? false : false,
+        parentOrder = await ParentOrder.create({
+            user,
+            totalAmount: parentTotal,
+            paymentMethod,
+            isPaid: false,
         });
 
-        /*
-        Create Order Items
-        */
+        for (const storeGroup of Object.values(storeGroups)) {
+            const storeOrder = await StoreOrder.create({
+                parentOrder: parentOrder._id,
+                store: storeGroup.store,
+                address,
+                totalAmount: storeGroup.totalAmount,
+                vendorEarnings: storeGroup.totalAmount,
+            });
 
-        const orderItems = items.map((item) => ({
-            storeOrder: storeOrder._id,
-            product: item.product,
-            quantity: item.quantity,
-            price: item.price,
-            name: item.name,
-            image: item.image,
-        }));
+            createdStoreOrderIds.push(storeOrder._id);
 
-        await OrderItem.insertMany(orderItems);
-    }
+            const orderItems = storeGroup.items.map((item) => ({
+                storeOrder: storeOrder._id,
+                product: item.product,
+                quantity: item.quantity,
+                price: item.price,
+                productNameSnapshot: item.productNameSnapshot,
+                productImageSnapshot: item.productImageSnapshot,
+            }));
 
-    /*
-    Payment Logic
-    */
+            await OrderItem.insertMany(orderItems);
+        }
+    } catch (error) {
+        if (decrementedProducts.length > 0) {
+            await Promise.all(
+                decrementedProducts.map((item) =>
+                    Product.updateOne(
+                        { _id: item.productId },
+                        {
+                            $inc: {
+                                stock: item.quantity,
+                            },
+                        },
+                    ),
+                ),
+            );
+        }
 
-    if (paymentMethod === "STRIPE") {
-        /*
-        TODO:
+        if (createdStoreOrderIds.length > 0) {
+            await OrderItem.deleteMany({
+                storeOrder: { $in: createdStoreOrderIds },
+            });
+            await StoreOrder.deleteMany({ _id: { $in: createdStoreOrderIds } });
+        }
 
-        Create Stripe session here
+        if (parentOrder?._id) {
+            await ParentOrder.deleteOne({ _id: parentOrder._id });
+        }
 
-        return session url to frontend
-        */
+        throw error;
     }
 
     return parentOrder;
@@ -187,8 +261,10 @@ export const getUserOrdersService = async (user) => {
             product: item.product,
             quantity: item.quantity,
             price: item.price,
-            name: item.name,
-            image: item.image,
+            name: item.productNameSnapshot,
+            image: item.productImageSnapshot,
+            productNameSnapshot: item.productNameSnapshot,
+            productImageSnapshot: item.productImageSnapshot,
         });
     }
 

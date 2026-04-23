@@ -1,41 +1,30 @@
-const BASE_URL = import.meta.env.VITE_SERVER_URL;
+import { fetchService } from "@/services/fetchService";
 
 export const fetchMyStores = async () => {
-    const res = await fetch(`${BASE_URL}/store/user-stores`, {
+    return fetchService({
+        endpoint: "stores/me",
         method: "GET",
-        credentials: "include",
     });
-
-    if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || `Failed to fetch my stores`);
-    }
-    return await res.json();
 };
 
 export const requestStore = async (data) => {
-    const res = await fetch(`${BASE_URL}/store/create-request`, {
+    return fetchService({
+        endpoint: "stores/create-request",
         method: "POST",
-        credentials: "include",
         body: data,
     });
-
-    if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || "Store request failed");
-    }
-    return await res.json();
 };
 
 export const fetchStoreOrders = async (storeId) => {
-    const res = await fetch(`${BASE_URL}/store/orders/${storeId}`, {
+    return fetchService({
+        endpoint: `stores/orders/${storeId}`,
         method: "GET",
-        credentials: "include",
     });
+};
 
-    if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || `Failed to fetch store orders`);
-    }
-    return await res.json();
+export const fetchPublicStore = async (slug) => {
+    return fetchService({
+        endpoint: `stores/${slug}/public`,
+        method: "GET",
+    });
 };

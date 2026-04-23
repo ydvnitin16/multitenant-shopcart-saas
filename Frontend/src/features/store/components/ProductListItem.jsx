@@ -1,8 +1,9 @@
 import Toggle from "@/components/ui/Toggle";
-import React, { useState } from "react";
-import useUpdateStock from "../hooks/useUpdateStock";
+import React from "react";
 
 const ProductListItem = ({ product, storeSlug, updateStock }) => {
+    const isInStock = Number(product.stock) > 0;
+
     return (
         <div className='grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-4 px-4 py-3 hover:bg-zinc-50 items-center'>
             <div className='flex items-center gap-3 md:col-span-5'>
@@ -34,13 +35,13 @@ const ProductListItem = ({ product, storeSlug, updateStock }) => {
 
             <div className='md:col-span-3 md:flex md:justify-end'>
                 <Toggle
-                    checked={product.inStock}
+                    checked={isInStock}
                     onChange={(e) => {
                         e.stopPropagation();
                         updateStock({
                             storeSlug,
                             productId: product._id,
-                            inStock: !product.inStock,
+                            inStock: isInStock,
                         });
                     }}
                 />

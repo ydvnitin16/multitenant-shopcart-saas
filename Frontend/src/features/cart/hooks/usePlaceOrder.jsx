@@ -20,9 +20,6 @@ export const usePlaceOrder = ({ clearCart }) => {
                 navigate("/orders");
             }
 
-            if (payload.paymentMethod === "STRIPE") {
-                console.log("Stripe flow here");
-            }
         } catch (err) {
             const message = err?.message || "Something went wrong";
             toast.error(message);

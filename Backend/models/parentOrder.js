@@ -14,13 +14,21 @@ const parentOrderSchema = new mongoose.Schema(
         },
         paymentMethod: {
             type: String,
-            enum: ["COD", "STRIPE"],
+            enum: ["COD", "ONLINE"],
             required: true,
         },
         isPaid: {
             type: Boolean,
             required: true,
             default: false,
+        },
+        stripeSessionId: {
+            type: String,
+            default: null,
+        },
+        stripePaymentIntentId: {
+            type: String,
+            default: null,
         },
     },
     { timestamps: true },

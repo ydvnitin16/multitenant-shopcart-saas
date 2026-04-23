@@ -1,30 +1,30 @@
-import { useEffect, useState } from 'react';
-import { fetchProducts } from '../services/product.api';
+import useFetch from "@/hooks/useFetch";
+import { useEffect, useMemo, useState } from "react";
 
 const useStoreProducts = ({ storeSlug }) => {
-    const [products, setProducts] = useState();
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [total, setTotal] = useState(null);
+    const [products, setProducts] = useState([]);
+    const { data, loading, error, reFetch } = useFetch(
+        storeSlug ? `${storeSlug}/products` : null,
+        {},
+        { enabled: Boolean(storeSlug) },
+    );
+
+    const total = useMemo(() => data?.total || 0, [data?.total]);
 
     useEffect(() => {
-        const loadProducts = async () => {
-            try {
-                setLoading(true);
-                const data = await fetchProducts({ storeSlug });
-                setProducts(data.products);
-                setTotal(data.total);
-            } catch (err) {
-                console.log(err.message);
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadProducts();
-    }, [storeSlug]);
+        if (data?.products) {
+            setProducts(data.products);
+        }
+    }, [data?.products]);
 
-    return { loading, error, products, setProducts, total };
+    return {
+        loading,
+        error: error?.message || null,
+        products,
+        setProducts,
+        total,
+        refetch: reFetch,
+    };
 };
 
 export default useStoreProducts;

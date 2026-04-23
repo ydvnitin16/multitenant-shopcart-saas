@@ -28,12 +28,12 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Routes
-app.use('/user', userRoutes);
+app.use('/auth', userRoutes);
 app.use('/stores', storeRoutes)
 app.use('/', productRoutes);
 app.use('/admin', adminRoutes);
 app.use('/orders', orderRoutes);
-app.use('/address', addressRoutes);
+app.use('/addresses', addressRoutes);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;

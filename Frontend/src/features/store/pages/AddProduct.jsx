@@ -96,6 +96,23 @@ const AddProduct = () => {
 
                     <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
                         <Input
+                            error={errors.category?.message}
+                            {...register('category')}
+                            label="Category"
+                            placeholder="Electronics"
+                            type="text"
+                        />
+                        <Input
+                            error={errors.stock?.message}
+                            {...register('stock')}
+                            label="Stock"
+                            placeholder="25"
+                            type="number"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2">
+                        <Input
                             error={errors.price?.message}
                             {...register('price')}
                             label="Price"

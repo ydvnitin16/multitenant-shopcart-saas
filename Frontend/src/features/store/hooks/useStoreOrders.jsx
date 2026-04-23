@@ -1,24 +1,16 @@
-import { useEffect, useState } from "react";
-import { fetchStoreOrders } from "../services/store.api";
+import useFetch from "@/hooks/useFetch";
 
 export const useStoreOrders = (storeId) => {
-    const [orders, setOrders] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { data, loading, error, reFetch } = useFetch(
+        storeId ? `stores/orders/${storeId}` : null,
+        {},
+        { enabled: Boolean(storeId) },
+    );
 
-    const fetchOrders = async () => {
-        try {
-            const data = await fetchStoreOrders(storeId);
-            setOrders(data.orders);
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+    return {
+        orders: data?.orders || [],
+        loading,
+        error: error?.message || null,
+        refetch: reFetch,
     };
-
-    useEffect(() => {
-        if (storeId) fetchOrders();
-    }, [storeId]);
-
-    return { orders, loading, refetch: fetchOrders };
 };

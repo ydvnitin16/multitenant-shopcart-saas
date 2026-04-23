@@ -1,24 +1,12 @@
-import { useEffect, useState } from "react";
-import { getOrders } from "../../cart/services/orders";
+import useFetch from "@/hooks/useFetch";
 
 export const useOrders = () => {
-    const [orders, setOrders] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { data, loading, error, reFetch } = useFetch("orders/my-orders");
 
-    const fetchOrders = async () => {
-        try {
-            const data = await getOrders();
-            setOrders(data.orders);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
+    return {
+        orders: data?.orders || [],
+        loading,
+        error: error?.message || null,
+        refetch: reFetch,
     };
-
-    useEffect(() => {
-        fetchOrders();
-    }, []);
-
-    return { orders, loading };
 };

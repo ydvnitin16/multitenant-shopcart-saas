@@ -1,30 +1,16 @@
-import { useEffect, useState } from "react";
-import { getProductById } from "../services/products";
+import useFetch from "@/hooks/useFetch";
 
 export const useProduct = ({ productId }) => {
-    const [product, setProduct] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const { data, loading, error, reFetch } = useFetch(
+        productId ? `product/${productId}` : null,
+        {},
+        { enabled: Boolean(productId) },
+    );
 
-    useEffect(() => {
-        const loadProduct = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-
-                const data = await getProductById(productId);
-                console.log(data);
-                setProduct(data.product);
-            } catch (err) {
-                setError(err.message || "Something went wrong!");
-            } finally {
-                setLoading(false);
-            }
-        };
-        if (productId) {
-            loadProduct();
-        }
-    }, [productId]);
-
-    return { product, loading, error };
+    return {
+        product: data?.product || null,
+        loading,
+        error: error?.message || null,
+        refetch: reFetch,
+    };
 };

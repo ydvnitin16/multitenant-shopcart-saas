@@ -19,11 +19,10 @@ export const useRequestStore = ({ reset }) => {
 
             setError(null);
             setLoading(true);
-            console.log(supportedFormData);
-            const data = await requestStore(supportedFormData);
-            console.log(data);
+            await requestStore(supportedFormData);
 
             toast.success("Store request created successfully");
+            reset?.();
         } catch (err) {
             const message = err.message || "Something went wrong";
             setError(message);

@@ -3,12 +3,20 @@ import { useOrders } from "../hooks/useOrders";
 import OrderCard from "../components/OrderCard";
 
 const Orders = () => {
-    const { orders, loading } = useOrders();
+    const { orders, loading, error } = useOrders();
 
     if (loading) {
         return (
             <div className='min-h-screen bg-zinc-50 pt-28 flex justify-center'>
                 <p className='text-zinc-600'>Loading your orders...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className='min-h-screen bg-zinc-50 pt-28 flex items-center justify-center text-red-600'>
+                {error}
             </div>
         );
     }

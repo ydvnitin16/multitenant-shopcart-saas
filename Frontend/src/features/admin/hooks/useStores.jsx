@@ -1,5 +1,10 @@
+import { useCallback, useEffect, useState } from "react";
+import useFetch from "@/hooks/useFetch";
+import { updateStoreStatus } from "../services/store.api";
+
 const useStores = ({ status }) => {
-    const { data, loading, error } = useFetch(`/api/stores?status=${status}`);
+    const query = status && status !== "ALL" ? `?status=${status}` : "";
+    const { data, loading, error } = useFetch(`admin/stores${query}`);
     const [stores, setStores] = useState([]);
     const [loadingIds, setLoadingIds] = useState(() => new Set());
 
@@ -38,10 +43,11 @@ const useStores = ({ status }) => {
     return {
         stores,
         loading,
-        error,
+        error: error?.message || null,
         approveStore: (id) => updateStatus(id, "APPROVED"),
         rejectStore: (id) => updateStatus(id, "REJECTED"),
         isLoading: (id) => loadingIds.has(id),
+        setStores,
     };
 };
 

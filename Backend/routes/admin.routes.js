@@ -4,7 +4,8 @@ import { getStores, updateStoreStatus } from '../controllers/admin.controller.js
 
 const router = express.Router();
 
-router.put('/store/:storeId/status', auth, allowedRoles('ADMIN'), updateStoreStatus);
 router.get('/stores', auth, allowedRoles('ADMIN'), getStores);
+router.put('/store/:storeId/status', auth, allowedRoles('ADMIN'), updateStoreStatus);
+// Create a stats route
 
 export default router;

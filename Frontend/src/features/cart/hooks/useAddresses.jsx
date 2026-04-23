@@ -1,24 +1,12 @@
-import { useEffect, useState } from "react";
-import { getAddresses } from "../services/address";
+import useFetch from "@/hooks/useFetch";
 
 export const useAddresses = () => {
-    const [addresses, setAddresses] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const { data, loading, error, reFetch } = useFetch("addresses");
 
-    const fetchAddresses = async () => {
-        try {
-            const data = await getAddresses();
-            setAddresses(data.addresses);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setLoading(false);
-        }
+    return {
+        addresses: data?.addresses || [],
+        loading,
+        error: error?.message || null,
+        refetch: reFetch,
     };
-
-    useEffect(() => {
-        fetchAddresses();
-    }, []);
-
-    return { addresses, loading, refetch: fetchAddresses };
 };

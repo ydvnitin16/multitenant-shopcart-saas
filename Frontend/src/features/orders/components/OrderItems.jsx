@@ -10,15 +10,25 @@ const OrderItems = ({ items }) => {
                 >
                     <div className='w-16 h-16 rounded-lg overflow-hidden bg-zinc-100'>
                         <img
-                            src={item.product.images[0].url}
-                            alt={item.product.name}
+                            src={
+                                item.product?.images?.[0]?.url ||
+                                item.productImageSnapshot ||
+                                item.image
+                            }
+                            alt={
+                                item.product?.name ||
+                                item.productNameSnapshot ||
+                                item.name
+                            }
                             className='w-full h-full object-cover'
                         />
                     </div>
 
                     <div className='flex-1'>
                         <h3 className='text-sm font-semibold text-zinc-900'>
-                            {item.product.name}
+                            {item.product?.name ||
+                                item.productNameSnapshot ||
+                                item.name}
                         </h3>
 
                         <div className='flex justify-between text-xs text-zinc-600 mt-1'>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { updateProductStock } from "../services/product.api";
 import toast from "react-hot-toast";
 
@@ -7,15 +7,16 @@ const useUpdateStock = ({ setProducts }) => {
 
     const updateStock = useCallback(
         async ({ storeSlug, productId, inStock }) => {
+            const nextStock = inStock ? 0 : 1;
             try {
                 setProducts((prevProducts) =>
                     prevProducts.map((product) =>
                         product._id === productId
-                            ? { ...product, inStock }
+                            ? { ...product, stock: nextStock }
                             : product,
                     ),
                 );
-                const data = await updateProductStock({
+                await updateProductStock({
                     storeSlug,
                     productId,
                     inStock,

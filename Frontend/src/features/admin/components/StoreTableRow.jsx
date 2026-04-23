@@ -8,7 +8,7 @@ const StoreTableRow = ({ store, setSelectedStore }) => {
                 <p className="text-xs text-zinc-500">{store.email}</p>
             </td>
 
-            <td className="px-6 py-4">{store.userId?.name}</td>
+            <td className="px-6 py-4">{store.user?.name}</td>
             <td className="px-6 py-4">Category</td>
 
             <td className="px-6 py-4">
@@ -24,7 +24,11 @@ const StoreTableRow = ({ store, setSelectedStore }) => {
             </td>
 
             <td className="px-6 py-4 font-semibold">$12,400</td>
-            <td className="px-6 py-4 text-zinc-500">2024-01-15</td>
+            <td className="px-6 py-4 text-zinc-500">
+                {store.createdAt
+                    ? new Date(store.createdAt).toLocaleDateString()
+                    : "N/A"}
+            </td>
 
             <td className="px-6 py-4 flex gap-4 text-zinc-500">
                 <button

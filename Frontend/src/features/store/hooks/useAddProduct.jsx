@@ -20,8 +20,10 @@ const useAddProduct = ({ storeSlug, reset }) => {
 
             formatedData.append('name', formData.name);
             formatedData.append('description', formData.description);
+            formatedData.append('category', formData.category);
             formatedData.append('price', formData.price);
             formatedData.append('mrp', formData.mrp);
+            formatedData.append('stock', formData.stock);
 
             // append all the imges in the FormData to send backend
             for (let i = 0; i < images?.length; i++) {
@@ -34,8 +36,8 @@ const useAddProduct = ({ storeSlug, reset }) => {
 
             const data = await addProduct(storeSlug, formatedData);
             toast.success(data.message || 'Product added succesfully');
-            reset()
-            setImages([])
+            reset();
+            setImages([]);
         } catch (err) {
             console.log(err.message);
             setError(err.message || 'Something went wrong');

@@ -46,7 +46,7 @@ const StoreRequestCard = ({ store, approveStore, rejectStore, loading }) => {
                         <span className="text-zinc-500 font-medium">
                             Owner:
                         </span>
-                        <span>{store.userId?.name || 'Unknown'}</span>
+                        <span>{store.user?.name || 'Unknown'}</span>
                     </div>
 
                     <div className="flex items-center gap-2 text-zinc-900 sm:col-span-2">
@@ -71,7 +71,10 @@ const StoreRequestCard = ({ store, approveStore, rejectStore, loading }) => {
                 </div>
 
                 <div className="text-zinc-600 text-sm m-0">
-                    Submitted on: 01/01/2026
+                    Submitted on:{" "}
+                    {store.createdAt
+                        ? new Date(store.createdAt).toLocaleDateString()
+                        : "N/A"}
                 </div>
 
                 {/* Actions */}
