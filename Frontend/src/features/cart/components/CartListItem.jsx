@@ -7,6 +7,7 @@ const CartListItem = ({
     decreaseQuantity,
     removeFromCart,
 }) => {
+    console.log(item);
     return (
         <div className='grid grid-cols-5 items-center px-6 py-5 border-b border-zinc-100'>
             <div className='col-span-3 flex items-center gap-4'>
@@ -30,23 +31,31 @@ const CartListItem = ({
             </span>
 
             <div className='flex items-center gap-2'>
-                <div className='flex items-center border border-zinc-200 rounded-lg'>
-                    <button
-                        onClick={() => decreaseQuantity(item._id)}
-                        className='px-2 py-1 text-zinc-500 hover:text-black'
-                    >
-                        <Minus size={14} />
-                    </button>
+                {item.stock > 0 ? (
+                    <div className='flex items-center border border-zinc-200 rounded-lg'>
+                        <button
+                            disabled={item.quantity === 1}
+                            onClick={() => decreaseQuantity(item._id)}
+                            className='px-2 py-1 text-zinc-500 hover:text-black cursor-pointer disabled:cursor-no-drop'
+                        >
+                            <Minus size={14} />
+                        </button>
 
-                    <span className='px-3 text-sm'>{item.quantity}</span>
+                        <span className='px-3 text-sm'>{item.quantity}</span>
 
-                    <button
-                        onClick={() => increaseQuantity(item._id)}
-                        className='px-2 py-1 text-zinc-500 hover:text-black'
-                    >
-                        <Plus size={14} />
-                    </button>
-                </div>
+                        <button
+                            disabled={item.stock <= item.quantity}
+                            onClick={() => increaseQuantity(item._id)}
+                            className='px-2 py-1 text-zinc-500 hover:text-black cursor-pointer disabled:cursor-no-drop'
+                        >
+                            <Plus size={14} />
+                        </button>
+                    </div>
+                ) : (
+                    <p className='text-red-600 italic font-medium text-sm'>
+                        Out of Stock
+                    </p>
+                )}
 
                 <button
                     onClick={() => removeFromCart(item._id)}
@@ -55,6 +64,12 @@ const CartListItem = ({
                     <Trash2 size={16} />
                 </button>
             </div>
+
+            {(item.quantity > item.stock || item.stock < 10) && (
+                <p className='text-red-600 italic font-medium text-sm'>
+                    {item.stock} items left!
+                </p>
+            )}
         </div>
     );
 };

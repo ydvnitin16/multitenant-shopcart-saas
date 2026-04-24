@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Input from "@/components/ui/Input";
-import Button from "@/components/ui/Button";
 import ProductDetailsCard from "../components/ProductDetailsCard";
 import useStoreProducts from "../hooks/useStoreProducts";
 import { useParams } from "react-router-dom";
@@ -58,7 +57,7 @@ const ManageProducts = () => {
                             <div className='col-span-5'>Name</div>
                             <div className='col-span-2'>Category</div>
                             <div className='col-span-2 text-right'>Price</div>
-                            <div className='col-span-3 text-right'>Status</div>
+                            <div className='col-span-3 text-right'>Stock</div>
                         </div>
 
                         <div className='divide-y divide-zinc-200'>

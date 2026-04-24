@@ -33,18 +33,8 @@ const ProductListItem = ({ product, storeSlug, updateStock }) => {
                 <span>₹{product.price}</span>
             </div>
 
-            <div className='md:col-span-3 md:flex md:justify-end'>
-                <Toggle
-                    checked={isInStock}
-                    onChange={(e) => {
-                        e.stopPropagation();
-                        updateStock({
-                            storeSlug,
-                            productId: product._id,
-                            inStock: isInStock,
-                        });
-                    }}
-                />
+            <div className='md:col-span-2 text-sm text-zinc-600'>
+                {product.stock || "out of stock"}
             </div>
         </div>
     );

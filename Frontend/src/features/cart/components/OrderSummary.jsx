@@ -11,7 +11,7 @@ const OrderSummary = ({
     disabled = false,
     showItems = false,
 }) => {
-    const totalItems = items.length;
+    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
     const subTotalAmount = items.reduce(
         (total, product) => total + product.mrp * product.quantity,

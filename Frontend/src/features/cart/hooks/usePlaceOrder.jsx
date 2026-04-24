@@ -13,8 +13,7 @@ export const usePlaceOrder = ({ clearCart }) => {
             setLoading(true);
             setError(null);
 
-            const res = await placeOrder(payload);
-
+            const data = await placeOrder(payload);
             if (payload.paymentMethod === "COD") {
                 clearCart?.();
                 navigate("/orders");

@@ -19,12 +19,11 @@ export const useAuthHandle = ({ type, reset }) => {
             reset();
             if (type === "signup") {
                 toast.success("Account created successfully");
-                navigate("/user/login");
-                return;
+            } else {
+                toast.success("Login successful");
             }
-
+            console.log(data)
             setAuthUser(data.user);
-            toast.success("Login successful");
             const role = data.user.role;
             const navigateTo =
                 role === "ADMIN"

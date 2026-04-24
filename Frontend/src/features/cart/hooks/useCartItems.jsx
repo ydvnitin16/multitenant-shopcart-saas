@@ -4,6 +4,7 @@ import { getProductsByIds } from "../../catalog/services/products";
 
 export const useCartItems = () => {
     const cart = useCartStore((state) => state.cart);
+    const removeFromCart = useCartStore((state) => state.removeFromCart);
 
     const productIds = cart
         .map((item) => item.productId)
@@ -29,6 +30,14 @@ export const useCartItems = () => {
 
                 const data = await getProductsByIds(ids);
 
+                // Make the cart id sync with the available products
+                const removeItemsIds = [];
+                cart.forEach((item) => {
+                    data?.products?.find((p) => p._id === item.productId)
+                        ? null
+                        : removeItemsIds.push(item.productId);
+                });
+                removeItemsIds.forEach((id) => removeFromCart(id));
                 setCartItems(data.products);
             } catch (err) {
                 setError(err.message || "Failed to fetch cart products");
