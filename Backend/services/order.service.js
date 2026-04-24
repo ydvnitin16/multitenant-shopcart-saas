@@ -94,7 +94,7 @@ export const placeOrderService = async ({
         if (!store?.isActive || store.status !== "APPROVED") {
             throw new ApiError(
                 400,
-                `${store?.name || "This store"} is currently unavailable.`,
+                `${store?.name ? `${store.name} store` : "This store"} is currently unavailable.`,
             );
         }
 
@@ -214,13 +214,13 @@ export const placeOrderService = async ({
             await ParentOrder.deleteOne({ _id: parentOrder._id });
         }
 
-        throw error;
+        throw new ApiError(500, "Something went wrong");
     }
 
     return parentOrder;
 };
 export const getUserOrdersService = async (user) => {
-    // 1️⃣ Get parent orders
+    // Get parent orders
     const parentOrders = await ParentOrder.find({ user })
         .sort({ createdAt: -1 })
         .lean();
@@ -229,7 +229,7 @@ export const getUserOrdersService = async (user) => {
 
     const parentOrderIds = parentOrders.map((o) => o._id);
 
-    // 2️⃣ Get store orders
+    // Get store orders
     const storeOrders = await StoreOrder.find({
         parentOrder: { $in: parentOrderIds },
     })
@@ -239,14 +239,14 @@ export const getUserOrdersService = async (user) => {
 
     const storeOrderIds = storeOrders.map((o) => o._id);
 
-    // 3️⃣ Get order items
+    // Get order items
     const orderItems = await OrderItem.find({
         storeOrder: { $in: storeOrderIds },
     })
-        .populate("product", "name images price slug")
+        .populate("product", "name images price ")
         .lean();
 
-    // 4️⃣ Group items by storeOrder
+    // Group items by storeOrder
     const itemsMap = {};
 
     for (const item of orderItems) {
@@ -268,7 +268,7 @@ export const getUserOrdersService = async (user) => {
         });
     }
 
-    // 5️⃣ Group storeOrders by parentOrder
+    // Group storeOrders by parentOrder
     const storeOrdersMap = {};
 
     for (const order of storeOrders) {
@@ -288,7 +288,7 @@ export const getUserOrdersService = async (user) => {
         });
     }
 
-    // 6️⃣ Attach storeOrders to parentOrders
+    // Attach storeOrders to parentOrders
     const finalOrders = parentOrders.map((order) => ({
         ...order,
         storeOrders: storeOrdersMap[order._id.toString()] || [],

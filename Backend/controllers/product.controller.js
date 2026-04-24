@@ -20,7 +20,6 @@ export const createProduct = async (req, res) => {
             url: file.path,
             public_id: file.filename,
         };
-        console.log(image);
         return image;
     });
     req.body.images = productImages;
@@ -94,7 +93,7 @@ export const getProducts = async (req, res) => {
 export const getProduct = async (req, res) => {
     const { productId } = req.params;
     const product = await getProductByIdService(productId);
-
+    console.log(product)
     res.status(200).json({ success: true, product });
 };
 

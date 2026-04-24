@@ -1,8 +1,8 @@
-import bcrypt from 'bcrypt';
-import { createUserService, getUserService } from '../services/auth.service.js';
-import generateTokenAndSetCookie from '../utils/generateToken.js';
-import ApiSuccess from '../utils/apiSuccess.js';
-import ApiError from '../utils/apiError.js';
+import bcrypt from "bcrypt";
+import { createUserService, getUserService } from "../services/auth.service.js";
+import generateTokenAndSetCookie from "../utils/generateToken.js";
+import ApiSuccess from "../utils/apiSuccess.js";
+import ApiError from "../utils/apiError.js";
 
 // Register User
 export const registerUser = async (req, res) => {
@@ -17,7 +17,15 @@ export const registerUser = async (req, res) => {
 
     generateTokenAndSetCookie(res, user);
 
-    ApiSuccess(res, 201, 'User registered successfully');
+    ApiSuccess(res, 201, "User registered successfully", {
+        user: {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            image: user.image || null,
+        },
+    });
 };
 
 // Login User
@@ -25,15 +33,16 @@ export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await getUserService({ email });
-    if (!user) throw new ApiError(404, 'Invalid Credentials');
+    console.log(user)
+    if (!user) throw new ApiError(404, "Invalid Credentials");
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
-    if (!isPasswordCorrect) throw new ApiError(404, 'Invalid Credentials');
+    if (!isPasswordCorrect) throw new ApiError(404, "Invalid Credentials");
     generateTokenAndSetCookie(res, user);
 
-
-    ApiSuccess(res, 201, 'User Logged successfully', {
+    ApiSuccess(res, 201, "User Logged successfully", {
         user: {
+            _id: user._id,
             name: user.name,
             email: user.email,
             role: user.role,
@@ -44,6 +53,6 @@ export const loginUser = async (req, res) => {
 
 // Logout User
 export const logoutUser = (req, res) => {
-    res.clearCookie('authHeader');
-    ApiSuccess(res, 200, 'Logout successfull');
+    res.clearCookie("authHeader");
+    ApiSuccess(res, 200, "Logout successfull");
 };
