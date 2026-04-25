@@ -3,6 +3,7 @@ import ApiError from "../utils/apiError.js";
 import {
     getUserOrdersService,
     placeOrderService,
+    updateStoreOrderStatusService,
 } from "../services/order.service.js";
 
 // User place order -> save in the DB
@@ -46,6 +47,15 @@ export const getUserOrders = async (req, res) => {
         success: true,
         orders,
     });
+};
+
+// Get store orders
+export const updateStoreOrderStatus = async (req, res) => {
+    const { id } = req.params;
+    const status = req.body.status;
+    const storeOrder = await updateStoreOrderStatusService(id, status);
+
+    res.status(200).json({ success: true, storeOrder });
 };
 
 // // Admin -> get all orders to manage

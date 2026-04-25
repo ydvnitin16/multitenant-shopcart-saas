@@ -296,3 +296,23 @@ export const getUserOrdersService = async (user) => {
 
     return finalOrders;
 };
+
+export const updateStoreOrderStatusService = async (storeOrderId, status) => {
+    if (!["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"].includes(status)) {
+        throw new ApiError(400, "Invalid status");
+    }
+    const storeOrder = await StoreOrder.findById(storeOrderId);
+
+    if (storeOrder.status === "CANCELLED") {
+        throw new ApiError(400, "Cancelled order can't be managed");
+    }
+
+    if (!storeOrder) {
+        throw new ApiError(404, "Order not found");
+    }
+
+    storeOrder.status = status;
+    await storeOrder.save();
+
+    return storeOrder;
+};

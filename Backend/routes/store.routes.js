@@ -21,6 +21,5 @@ router.post(
 );
 router.get("/me", auth, getUserStores);
 router.get("/:slug/public", getStoreFront);
-router.get("/orders/:storeId", auth, allowedRoles('VENDOR'), getStoreOrders) // add to orders
 
 export default router;
