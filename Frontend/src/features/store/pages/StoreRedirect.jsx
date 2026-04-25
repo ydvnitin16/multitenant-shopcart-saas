@@ -7,8 +7,7 @@ import { useNavigate } from "react-router-dom";
 const StoreRedirect = () => {
     const navigate = useNavigate();
     const { setStores, setCurrentStore } = useVendorStoreStore();
-    const { data, loading, error } = useFetch("stores/me");
-
+    const { data, loading, error } = useFetch("stores/me?status=APPROVED");
     useEffect(() => {
         const firstStore = data?.stores?.[0];
         if (!firstStore) {
