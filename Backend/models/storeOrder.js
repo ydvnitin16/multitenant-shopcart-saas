@@ -28,6 +28,11 @@ const storeOrderSchema = new mongoose.Schema(
             min: 0,
             default: 0,
         },
+        isPaid: {
+            type: Boolean,
+            required: true,
+            default: false,
+        },
         status: {
             type: String,
             enum: ["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"],

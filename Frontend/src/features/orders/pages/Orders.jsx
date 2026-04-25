@@ -1,9 +1,9 @@
-import { formatPrice } from "@/utils/formatPrice";
 import { useOrders } from "../hooks/useOrders";
 import OrderCard from "../components/OrderCard";
 
 const Orders = () => {
-    const { orders, loading, error } = useOrders();
+    const { orders, loading, error, cancelStoreOrder, isCancelling } =
+        useOrders();
 
     if (loading) {
         return (
@@ -42,7 +42,12 @@ const Orders = () => {
                 </h1>
 
                 {orders.map((order) => (
-                    <OrderCard key={order._id} order={order} />
+                    <OrderCard
+                        key={order._id}
+                        order={order}
+                        cancelStoreOrder={cancelStoreOrder}
+                        isCancelling={isCancelling}
+                    />
                 ))}
             </div>
         </div>

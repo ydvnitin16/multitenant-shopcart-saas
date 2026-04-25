@@ -22,14 +22,41 @@ export const useStoreOrders = (storeId) => {
             setOrders((prev) =>
                 prev.map((order) =>
                     order._id === orderId
-                        ? { ...order, status: newStatus }
+                        ? {
+                              ...order,
+                              status: newStatus,
+                              isPaid:
+                                  newStatus === "DELIVERED"
+                                      ? true
+                                      : newStatus === "CANCELLED"
+                                        ? false
+                                        : order.isPaid,
+                          }
                         : order,
                 ),
             );
             setLoadingIds((prev) => new Set(prev).add(orderId));
 
             try {
-                await updateStoreOrderStatusApi(orderId, newStatus);
+                const response = await updateStoreOrderStatusApi(
+                    orderId,
+                    newStatus,
+                );
+                const updatedStoreOrder = response?.storeOrder;
+
+                if (updatedStoreOrder) {
+                    setOrders((prev) =>
+                        prev.map((order) =>
+                            order._id === orderId
+                                ? {
+                                      ...order,
+                                      status: updatedStoreOrder.status,
+                                      isPaid: updatedStoreOrder.isPaid,
+                                  }
+                                : order,
+                        ),
+                    );
+                }
             } catch (err) {
                 // Rollback if backend update request fails
                 setOrders(data?.orders ?? []);

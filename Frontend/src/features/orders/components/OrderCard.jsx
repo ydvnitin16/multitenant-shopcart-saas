@@ -1,7 +1,7 @@
 import OrderHeader from "./OrderHeader";
 import StoreOrderCard from "./StoreOrderCard";
 
-const OrderCard = ({ order }) => {
+const OrderCard = ({ order, cancelStoreOrder, isCancelling }) => {
     return (
         <div className='bg-white border border-zinc-200 rounded-2xl shadow-sm overflow-hidden'>
             <OrderHeader order={order} />
@@ -11,6 +11,8 @@ const OrderCard = ({ order }) => {
                     <StoreOrderCard
                         key={storeOrder._id}
                         storeOrder={storeOrder}
+                        onCancel={cancelStoreOrder}
+                        isCancelling={isCancelling(storeOrder._id)}
                     />
                 ))}
                 <div className='px-6 py-4 border-t border-zinc-200 bg-emerald-50 text-sm text-emerald-700'>

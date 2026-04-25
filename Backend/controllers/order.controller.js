@@ -53,9 +53,30 @@ export const getUserOrders = async (req, res) => {
 export const updateStoreOrderStatus = async (req, res) => {
     const { id } = req.params;
     const status = req.body.status;
-    const storeOrder = await updateStoreOrderStatusService(id, status);
+    const storeOrder = await updateStoreOrderStatusService({
+        storeOrderId: id,
+        status,
+        actorId: req.user.id,
+        actorRole: req.user.role,
+    });
 
     res.status(200).json({ success: true, storeOrder });
+};
+
+export const cancelUserStoreOrder = async (req, res) => {
+    const { id } = req.params;
+    const storeOrder = await updateStoreOrderStatusService({
+        storeOrderId: id,
+        status: "CANCELLED",
+        actorId: req.user.id,
+        actorRole: "USER",
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "Order cancelled successfully",
+        storeOrder,
+    });
 };
 
 // // Admin -> get all orders to manage

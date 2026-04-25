@@ -115,7 +115,7 @@ const OrderDetailsCard = ({
                     <p>
                         Paid:{" "}
                         <span className='font-medium'>
-                            {parentOrder?.isPaid ? "Yes" : "No"}
+                            {order.isPaid ? "Yes" : "No"}
                         </span>
                     </p>
 
@@ -131,7 +131,8 @@ const OrderDetailsCard = ({
                 </div>
 
                 {/* Update Status */}
-                {order.status !== "CANCELLED" && (
+                {order.status !== "CANCELLED" &&
+                    order.status !== "DELIVERED" && (
                     <div className='space-y-2'>
                         <label className='text-sm font-medium text-zinc-900'>
                             Update Status

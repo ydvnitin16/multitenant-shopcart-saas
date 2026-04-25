@@ -5,6 +5,42 @@ import Product from "../models/product.js";
 import Address from "../models/address.js";
 import ApiError from "../utils/apiError.js";
 
+const STORE_ORDER_STATUSES = ["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"];
+
+const restoreStoreOrderStock = async (storeOrderId) => {
+    const orderItems = await OrderItem.find({
+        storeOrder: storeOrderId,
+    }).lean();
+
+    await Promise.all(
+        orderItems.map((item) =>
+            Product.updateOne(
+                { _id: item.product },
+                {
+                    $inc: {
+                        stock: item.quantity,
+                    },
+                },
+            ),
+        ),
+    );
+};
+
+const syncParentOrderPaymentStatus = async (parentOrderId) => {
+    const activeStoreOrders = await StoreOrder.find({
+        parentOrder: parentOrderId,
+        status: { $ne: "CANCELLED" },
+    })
+        .select("isPaid")
+        .lean();
+
+    const isPaid =
+        activeStoreOrders.length > 0 &&
+        activeStoreOrders.every((order) => order.isPaid);
+
+    await ParentOrder.updateOne({ _id: parentOrderId }, { isPaid });
+};
+
 const normalizeOrderItems = (items) => {
     const normalizedItemsMap = new Map();
 
@@ -172,6 +208,7 @@ export const placeOrderService = async ({
                 address,
                 totalAmount: storeGroup.totalAmount,
                 vendorEarnings: storeGroup.totalAmount,
+                isPaid: false,
             });
 
             createdStoreOrderIds.push(storeOrder._id);
@@ -283,6 +320,7 @@ export const getUserOrdersService = async (user) => {
             store: order.store,
             address: order.address,
             status: order.status,
+            isPaid: order.isPaid,
             totalAmount: order.totalAmount,
             items: itemsMap[order._id.toString()] || [],
         });
@@ -297,22 +335,63 @@ export const getUserOrdersService = async (user) => {
     return finalOrders;
 };
 
-export const updateStoreOrderStatusService = async (storeOrderId, status) => {
-    if (!["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"].includes(status)) {
+export const updateStoreOrderStatusService = async ({
+    storeOrderId,
+    status,
+    actorId,
+    actorRole,
+}) => {
+    if (!STORE_ORDER_STATUSES.includes(status)) {
         throw new ApiError(400, "Invalid status");
     }
-    const storeOrder = await StoreOrder.findById(storeOrderId);
 
-    if (storeOrder.status === "CANCELLED") {
-        throw new ApiError(400, "Cancelled order can't be managed");
-    }
+    const storeOrder = await StoreOrder.findById(storeOrderId)
+        .populate("parentOrder", "user")
+        .populate("store", "user");
 
     if (!storeOrder) {
         throw new ApiError(404, "Order not found");
     }
 
+    if (
+        actorRole === "VENDOR" &&
+        storeOrder.store?.user?.toString() !== actorId.toString()
+    ) {
+        throw new ApiError(403, "You can only manage your own store orders");
+    }
+
+    if (
+        actorRole === "USER" &&
+        storeOrder.parentOrder?.user?.toString() !== actorId.toString()
+    ) {
+        throw new ApiError(403, "You can only cancel your own orders");
+    }
+
+    if (storeOrder.status === "CANCELLED") {
+        throw new ApiError(400, "This order is already cancelled");
+    }
+
+    if (storeOrder.status === "DELIVERED") {
+        throw new ApiError(400, "Delivered order can't be updated");
+    }
+
+    if (status === "PENDING" && storeOrder.status !== "PENDING") {
+        throw new ApiError(400, "Order can't be moved back to pending");
+    }
+
     storeOrder.status = status;
+
+    if (status === "DELIVERED") {
+        storeOrder.isPaid = true;
+    }
+
+    if (status === "CANCELLED") {
+        await restoreStoreOrderStock(storeOrder._id);
+        storeOrder.isPaid = false;
+    }
+
     await storeOrder.save();
+    await syncParentOrderPaymentStatus(storeOrder.parentOrder._id);
 
     return storeOrder;
 };

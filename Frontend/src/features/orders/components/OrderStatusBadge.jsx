@@ -1,8 +1,8 @@
 const statusColors = {
-    ORDER_PLACED: "bg-yellow-100 text-yellow-700",
-    PROCESSING: "bg-blue-100 text-blue-700",
+    PENDING: "bg-yellow-100 text-yellow-700",
     SHIPPED: "bg-purple-100 text-purple-700",
     DELIVERED: "bg-emerald-100 text-emerald-700",
+    CANCELLED: "bg-rose-100 text-rose-700",
 };
 
 const OrderStatusBadge = ({ status }) => {
