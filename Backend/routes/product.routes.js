@@ -11,6 +11,7 @@ import {
 } from "../middlewares/validate/product.validate.js";
 import {
     createProduct,
+    deleteProduct,
     getCartProducts,
     getMyStoreProducts,
     getProduct,
@@ -35,7 +36,7 @@ router.post(
 );
 
 router.put(
-    "/:storeSlug/product/:productId/update",
+    "/:storeSlug/:productId/update",
     auth,
     allowedRoles("VENDOR"),
     resolveTenant,
@@ -61,5 +62,14 @@ router.get("/product/:productId", getProduct);
 
 // Get products by array of IDs (cart)
 router.get("/products/cart", getCartProducts);
+
+router.delete(
+    "/:storeSlug/:productId",
+    auth,
+    allowedRoles("VENDOR"),
+    resolveTenant,
+    isStoreApproved,
+    deleteProduct,
+);
 
 export default router;

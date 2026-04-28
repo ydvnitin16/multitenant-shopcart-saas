@@ -19,7 +19,7 @@ router.post(
     validateCreateStoreForm,
     createStoreRequest,
 );
-router.get("/me", auth, getUserStores);
+router.get("/my", auth, getUserStores);
 router.get("/:slug/public", getStoreFront);
 
 export default router;

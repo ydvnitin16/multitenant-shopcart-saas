@@ -2,7 +2,7 @@ import { fetchService } from "@/services/fetchService";
 
 export const fetchMyStores = async () => {
     return fetchService({
-        endpoint: "stores/me",
+        endpoint: "stores/my",
         method: "GET",
     });
 };

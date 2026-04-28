@@ -13,8 +13,16 @@ const useFetch = (endpoint, options = {}, config = {}) => {
         optionsRef.current = options;
     }, [options]);
 
-    const execute = useCallback(async () => {
-        if (!endpoint || !enabled) {
+    const execute = useCallback(async (overrideOptions = {}) => {
+        const isManualRequest = Object.prototype.hasOwnProperty.call(
+            overrideOptions,
+            "endpoint",
+        );
+        const requestEndpoint = overrideOptions.endpoint ?? endpoint;
+        const requestEnabled =
+            overrideOptions.enabled ?? (isManualRequest ? true : enabled);
+
+        if (!requestEndpoint || !requestEnabled) {
             return null;
         }
 
@@ -27,9 +35,10 @@ const useFetch = (endpoint, options = {}, config = {}) => {
 
         try {
             const result = await fetchService({
-                endpoint,
+                endpoint: requestEndpoint,
                 signal: controller.signal,
                 ...optionsRef.current,
+                ...overrideOptions,
             });
             setData(result);
             return result;

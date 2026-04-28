@@ -4,6 +4,7 @@ import { addressSchema } from "../validations/address";
 import { addAddress } from "../services/address";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import toast from "react-hot-toast";
 
 const AddAddressModal = ({ isOpen, onClose, refetch }) => {
     const {
@@ -15,9 +16,14 @@ const AddAddressModal = ({ isOpen, onClose, refetch }) => {
     });
 
     const onSubmit = async (data) => {
-        await addAddress(data);
-        refetch();
-        onClose();
+        try {
+            await addAddress(data);
+            refetch();
+            onClose();
+        } catch (err) {
+            console.log(err.message);
+            toast.error(err.message || "Something went wrong");
+        }
     };
 
     if (!isOpen) {

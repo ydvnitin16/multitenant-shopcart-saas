@@ -42,9 +42,19 @@ export const updateProductService = async (productId, store, updates) => {
 
     for (let field of ALLOWED_FIELDS_TO_UPDATE) {
         if (updates[field] !== undefined && updates[field] !== null) {
+            if (["price", "mrp", "stock"].includes(field)) {
+                safeUpdates[field] = Number(updates[field]);
+                continue;
+            }
+
             safeUpdates[field] = updates[field];
         }
     }
+    console.log(updates)
+    console.log(safeUpdates)
+    console.log(product)
+    
+
     Object.assign(product, safeUpdates);
 
     await product.save();
@@ -100,7 +110,10 @@ export const getProductsService = async ({
 };
 
 export const getProductByIdService = async (id) => {
-    const product = await Product.findOne({ _id: id }).populate("store", "name slug image");
+    const product = await Product.findOne({ _id: id }).populate(
+        "store",
+        "name slug image",
+    );
 
     if (!product) {
         throw new ApiError(404, "Product not found");

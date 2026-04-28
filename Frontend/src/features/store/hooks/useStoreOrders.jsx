@@ -1,6 +1,7 @@
 import useFetch from "@/hooks/useFetch";
 import { useCallback, useEffect, useState } from "react";
 import { updateStoreOrderStatus as updateStoreOrderStatusApi } from "../services/order.api";
+import toast from "react-hot-toast";
 
 export const useStoreOrders = (storeId) => {
     const [orders, setOrders] = useState([]);
@@ -58,6 +59,7 @@ export const useStoreOrders = (storeId) => {
                     );
                 }
             } catch (err) {
+                toast.error(err.message || "Something went wrong");
                 // Rollback if backend update request fails
                 setOrders(data?.orders ?? []);
                 console.error(err.message);

@@ -2,7 +2,7 @@ import useFetch from "@/hooks/useFetch";
 import { useMemo } from "react";
 
 export const useStores = ({ status = "ALL" }) => {
-    const { data, loading, error, reFetch } = useFetch("stores/me");
+    const { data, loading, error, reFetch } = useFetch("stores/my");
 
     const stores = useMemo(() => {
         const storeList = data?.stores || [];
