@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 
 export const useStoreOrders = (storeId) => {
     const [orders, setOrders] = useState([]);
+    const [stats, setStats] = useState(null);
     const [loadingIds, setLoadingIds] = useState(() => new Set());
 
     const { data, loading, error, reFetch } = useFetch(
@@ -14,7 +15,11 @@ export const useStoreOrders = (storeId) => {
     );
 
     useEffect(() => {
-        if (data?.orders) setOrders(data.orders || []);
+        if (data?.orders) {
+            setOrders(data.orders || []);
+            setStats(data.stats || null);
+            console.log(data.stats)
+        }
     }, [data]);
 
     const updateOrderStatus = useCallback(
@@ -76,6 +81,7 @@ export const useStoreOrders = (storeId) => {
 
     return {
         orders,
+        stats,
         loading,
         error: error?.message || null,
         refetch: reFetch,

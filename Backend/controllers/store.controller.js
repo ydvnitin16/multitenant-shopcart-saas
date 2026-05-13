@@ -1,4 +1,5 @@
 import {
+    getStoreDashboardService,
     createStoreService,
     getStoreOrdersService,
     getStoreService,
@@ -36,13 +37,24 @@ export const getStoreFront = async (req, res) => {
     });
 };
 
-export const getStoreOrders = async (req, res) => {
-    const { storeId } = req.params;
-
-    const orders = await getStoreOrdersService(storeId);
+export const getStoreDashboard = async (req, res) => {
+    const dashboard = await getStoreDashboardService(req.store);
 
     res.status(200).json({
         success: true,
+        ...dashboard,
+    });
+};
+
+export const getStoreOrders = async (req, res) => {
+    const { storeId } = req.params;
+
+    const { stats, orders, total } = await getStoreOrdersService(storeId);
+
+    res.status(200).json({
+        success: true,
+        stats,
         orders,
+        total,
     });
 };

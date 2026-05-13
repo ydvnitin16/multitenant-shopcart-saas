@@ -4,12 +4,12 @@ import InlineLoader from "@/components/ui/InlineLoader";
 import useVendorStoreStore from "@/stores/useVendorStoreStore";
 import { formatPrice } from "@/utils/formatPrice";
 import OrderDetailsCard from "../components/OrderDetailsCard";
+import StatsCard from "@/components/ui/StatsCard";
 
 const ManageOrders = () => {
     const { currentStore } = useVendorStoreStore();
-    const { orders, loading, updateOrderStatus, isUpdating } = useStoreOrders(
-        currentStore?._id,
-    );
+    const { orders, stats, loading, updateOrderStatus, isUpdating } =
+        useStoreOrders(currentStore?._id);
 
     const [selectedOrderId, setSelectedOrderId] = useState(null);
     const selectedOrder =
@@ -59,39 +59,28 @@ const ManageOrders = () => {
                     <div className='bg-white border border-zinc-200 rounded-2xl p-5'>
                         <p className='text-sm text-zinc-500'>Total Orders</p>
                         <h3 className='text-2xl font-semibold mt-2'>
-                            {orders.length}
+                            {stats?.todayOrders || 0}
                         </h3>
                     </div>
 
                     <div className='bg-white border border-zinc-200 rounded-2xl p-5'>
                         <p className='text-sm text-zinc-500'>Pending</p>
                         <h3 className='text-2xl font-semibold mt-2 text-amber-600'>
-                            {
-                                orders.filter((o) => o.status === "PENDING")
-                                    .length
-                            }
+                            {stats?.pendingOrders || 0}
                         </h3>
                     </div>
 
                     <div className='bg-white border border-zinc-200 rounded-2xl p-5'>
                         <p className='text-sm text-zinc-500'>Delivered</p>
                         <h3 className='text-2xl font-semibold mt-2 text-emerald-600'>
-                            {
-                                orders.filter((o) => o.status === "DELIVERED")
-                                    .length
-                            }
+                            {stats?.deliveredToday || 0}
                         </h3>
                     </div>
 
                     <div className='bg-white border border-zinc-200 rounded-2xl p-5'>
                         <p className='text-sm text-zinc-500'>Revenue</p>
                         <h3 className='text-2xl font-semibold mt-2 text-blue-600'>
-                            {formatPrice(
-                                orders.reduce(
-                                    (acc, item) => acc + item.totalAmount,
-                                    0,
-                                ),
-                            )}
+                            {formatPrice(stats?.revenueToday || 0)}
                         </h3>
                     </div>
                 </div>

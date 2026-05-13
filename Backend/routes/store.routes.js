@@ -1,8 +1,13 @@
 import express from "express";
 import { allowedRoles, auth } from "../middlewares/auth.middlewares.js";
+import {
+    isStoreApproved,
+    resolveTenant,
+} from "../middlewares/store.middleware.js";
 import { validateCreateStoreForm } from "../middlewares/validate/store.validate.js";
 import {
     createStoreRequest,
+    getStoreDashboard,
     getStoreFront,
     getStoreOrders,
     getUserStores,
@@ -20,6 +25,14 @@ router.post(
     createStoreRequest,
 );
 router.get("/my", auth, getUserStores);
+router.get(
+    "/:storeSlug/dashboard",
+    auth,
+    allowedRoles("VENDOR"),
+    resolveTenant,
+    isStoreApproved,
+    getStoreDashboard,
+);
 router.get("/:slug/public", getStoreFront);
 
 export default router;

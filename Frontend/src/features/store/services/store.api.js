@@ -22,6 +22,13 @@ export const fetchStoreOrders = async (storeId) => {
     });
 };
 
+export const fetchStoreDashboard = async (storeSlug) => {
+    return fetchService({
+        endpoint: `stores/${storeSlug}/dashboard`,
+        method: "GET",
+    });
+};
+
 export const fetchPublicStore = async (slug) => {
     return fetchService({
         endpoint: `stores/${slug}/public`,
