@@ -12,6 +12,8 @@ import orderRoutes from "./routes/order.routes.js";
 import addressRoutes from "./routes/address.routes.js";
 import storeOrderRoutes from "./routes/storeOrder.routes.js";
 import { errorHandler } from "./middlewares/error.middlewares.js";
+import stripeRoutes from "./routes/stripe.routes.js";
+import { stripeWebhookHandler } from "./controllers/stripe.controller.js";
 
 const app = express();
 dotenv.config();
@@ -23,6 +25,11 @@ app.use(
         origin: process.env.CLIENT_URL,
         credentials: true,
     }),
+);
+app.post(
+    "/stripe/webhook",
+    express.raw({ type: "application/json" }),
+    stripeWebhookHandler,
 );
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -36,6 +43,7 @@ app.use("/admin", adminRoutes);
 app.use("/orders", orderRoutes);
 app.use("/addresses", addressRoutes);
 app.use("/store-orders", storeOrderRoutes);
+app.use("/stripe", stripeRoutes);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;

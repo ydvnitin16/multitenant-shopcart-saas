@@ -41,6 +41,12 @@ const Orders = () => {
                     My Orders
                 </h1>
 
+                <div className='px-6 py-4 border rounded-2xl border-emerald-200 bg-emerald-50 text-sm text-emerald-700'>
+                    Note: Items from different vendors may be shipped
+                    separately. In case of Cash on Delivery pay only for the
+                    items that you have recieved.
+                </div>
+
                 {orders.map((order) => (
                     <OrderCard
                         key={order._id}

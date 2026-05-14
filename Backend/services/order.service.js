@@ -88,7 +88,7 @@ export const placeOrderService = async ({
         throw new ApiError(400, "Cart is empty.");
     }
 
-    if (!["COD", "ONLINE"].includes(paymentMethod)) {
+    if (!["COD", "CARD"].includes(paymentMethod)) {
         throw new ApiError(400, "Invalid payment method.");
     }
 
@@ -256,6 +256,7 @@ export const placeOrderService = async ({
 
     return parentOrder;
 };
+
 export const getUserOrdersService = async (user) => {
     // Get parent orders
     const parentOrders = await ParentOrder.find({ user })
@@ -394,4 +395,23 @@ export const updateStoreOrderStatusService = async ({
     await syncParentOrderPaymentStatus(storeOrder.parentOrder._id);
 
     return storeOrder;
+};
+
+export const handlePaymentIntent = async (orderId, isPaid) => {
+    const parentOrder = await ParentOrder.findById(orderId).select("isPaid");
+    if (!parentOrder) {
+        throw new ApiError(404, "Order not found!");
+    }
+
+    const storeOrders = await StoreOrder.find({ parentOrder: orderId });
+
+    await Promise.all(
+        storeOrders.map((storeOrder) => {
+            storeOrder.isPaid = isPaid;
+            return storeOrder.save();
+        }),
+    );
+
+    parentOrder.isPaid = isPaid;
+    await parentOrder.save();
 };

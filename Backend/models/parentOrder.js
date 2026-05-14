@@ -14,7 +14,7 @@ const parentOrderSchema = new mongoose.Schema(
         },
         paymentMethod: {
             type: String,
-            enum: ["COD", "ONLINE"],
+            enum: ["COD", "CARD"],
             required: true,
         },
         isPaid: {

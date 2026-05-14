@@ -6,6 +6,7 @@ const PaymentSelector = ({ paymentMethod, setPaymentMethod }) => {
             id: "COD",
             label: "Cash on Delivery",
         },
+        { id: "CARD", label: "Credit / Debit Card" },
     ];
 
     return (
