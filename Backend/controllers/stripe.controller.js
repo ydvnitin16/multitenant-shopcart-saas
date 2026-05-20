@@ -38,6 +38,7 @@ export const createCheckoutSession = async (req, res) => {
 };
 
 export const stripeWebhookHandler = async (req, res) => {
+    console.log("Stripe Webhook Called!");
     const sig = req.headers["stripe-signature"];
     let event;
 
@@ -53,7 +54,7 @@ export const stripeWebhookHandler = async (req, res) => {
 
     try {
         switch (event.type) {
-            case "checkout.session.completed": {
+            case "payment_intent.succeeded": {
                 const session = event.data.object;
                 const parentOrderId = session.metadata?.parentOrderId;
 
@@ -62,7 +63,7 @@ export const stripeWebhookHandler = async (req, res) => {
                 }
                 break;
             }
-            case "checkout.session.expired": {
+            case "payment_intent.canceled": {
                 const session = event.data.object;
                 const parentOrderId = session.metadata?.parentOrderId;
 
@@ -76,7 +77,9 @@ export const stripeWebhookHandler = async (req, res) => {
                 break;
         }
     } catch (err) {
-        return res.status(500).send(`Webhook processing failed: ${err.message}`);
+        return res
+            .status(500)
+            .send(`Webhook processing failed: ${err.message}`);
     }
 
     return res.status(200).json({ received: true });
