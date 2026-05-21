@@ -6,6 +6,19 @@ import Address from "../models/address.js";
 import ApiError from "../utils/apiError.js";
 
 const STORE_ORDER_STATUSES = ["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"];
+const TERMINAL_UNPAID_PAYMENT_STATUSES = ["FAILED", "CANCELLED"];
+
+const getEffectivePaymentStatus = (parentOrder) => {
+    if (parentOrder?.paymentStatus) {
+        return parentOrder.paymentStatus;
+    }
+
+    if (parentOrder?.paymentMethod !== "CARD") {
+        return parentOrder?.isPaid ? "PAID" : "PENDING";
+    }
+
+    return parentOrder?.isPaid ? "PAID" : "PENDING";
+};
 
 const restoreStoreOrderStock = async (storeOrderId) => {
     const orderItems = await OrderItem.find({
@@ -39,6 +52,22 @@ const syncParentOrderPaymentStatus = async (parentOrderId) => {
         activeStoreOrders.every((order) => order.isPaid);
 
     await ParentOrder.updateOne({ _id: parentOrderId }, { isPaid });
+};
+
+const releaseParentOrderStock = async (parentOrderId) => {
+    const storeOrders = await StoreOrder.find({
+        parentOrder: parentOrderId,
+        status: { $ne: "CANCELLED" },
+    });
+
+    await Promise.all(
+        storeOrders.map(async (storeOrder) => {
+            await restoreStoreOrderStock(storeOrder._id);
+            storeOrder.status = "CANCELLED";
+            storeOrder.isPaid = false;
+            return storeOrder.save();
+        }),
+    );
 };
 
 const normalizeOrderItems = (items) => {
@@ -199,6 +228,7 @@ export const placeOrderService = async ({
             totalAmount: parentTotal,
             paymentMethod,
             isPaid: false,
+            paymentStatus: "PENDING",
         });
 
         for (const storeGroup of Object.values(storeGroups)) {
@@ -330,6 +360,7 @@ export const getUserOrdersService = async (user) => {
     // Attach storeOrders to parentOrders
     const finalOrders = parentOrders.map((order) => ({
         ...order,
+        paymentStatus: getEffectivePaymentStatus(order),
         storeOrders: storeOrdersMap[order._id.toString()] || [],
     }));
 
@@ -347,7 +378,7 @@ export const updateStoreOrderStatusService = async ({
     }
 
     const storeOrder = await StoreOrder.findById(storeOrderId)
-        .populate("parentOrder", "user")
+        .populate("parentOrder", "user paymentMethod paymentStatus")
         .populate("store", "user");
 
     if (!storeOrder) {
@@ -380,6 +411,17 @@ export const updateStoreOrderStatusService = async ({
         throw new ApiError(400, "Order can't be moved back to pending");
     }
 
+    if (
+        status === "CANCELLED" &&
+        storeOrder.parentOrder?.paymentMethod === "CARD" &&
+        getEffectivePaymentStatus(storeOrder.parentOrder) === "PENDING"
+    ) {
+        throw new ApiError(
+            400,
+            "Cancel the Stripe checkout first. Once payment is cancelled, stock will be restored automatically.",
+        );
+    }
+
     storeOrder.status = status;
 
     if (status === "DELIVERED") {
@@ -397,21 +439,78 @@ export const updateStoreOrderStatusService = async ({
     return storeOrder;
 };
 
-export const handlePaymentIntent = async (orderId, isPaid) => {
-    const parentOrder = await ParentOrder.findById(orderId).select("isPaid");
+export const updateParentOrderPaymentStatus = async ({
+    parentOrderId,
+    paymentStatus,
+    stripeSessionId,
+    stripePaymentIntentId,
+}) => {
+    const parentOrder = await ParentOrder.findById(parentOrderId);
+
     if (!parentOrder) {
         throw new ApiError(404, "Order not found!");
     }
 
-    const storeOrders = await StoreOrder.find({ parentOrder: orderId });
+    if (parentOrder.paymentMethod !== "CARD") {
+        return parentOrder;
+    }
 
-    await Promise.all(
-        storeOrders.map((storeOrder) => {
-            storeOrder.isPaid = isPaid;
-            return storeOrder.save();
-        }),
-    );
+    const currentPaymentStatus = getEffectivePaymentStatus(parentOrder);
 
-    parentOrder.isPaid = isPaid;
+    if (stripeSessionId && !parentOrder.stripeSessionId) {
+        parentOrder.stripeSessionId = stripeSessionId;
+    }
+
+    if (stripePaymentIntentId) {
+        parentOrder.stripePaymentIntentId = stripePaymentIntentId;
+    }
+
+    if (
+        currentPaymentStatus === "PAID" &&
+        paymentStatus !== "PAID"
+    ) {
+        await parentOrder.save();
+        return parentOrder;
+    }
+
+    if (
+        currentPaymentStatus === paymentStatus &&
+        TERMINAL_UNPAID_PAYMENT_STATUSES.includes(paymentStatus)
+    ) {
+        parentOrder.paymentStatus = paymentStatus;
+        parentOrder.isPaid = false;
+        await parentOrder.save();
+        return parentOrder;
+    }
+
+    if (paymentStatus === "PAID") {
+        const storeOrders = await StoreOrder.find({
+            parentOrder: parentOrderId,
+            status: { $ne: "CANCELLED" },
+        });
+
+        await Promise.all(
+            storeOrders.map((storeOrder) => {
+                storeOrder.isPaid = true;
+                return storeOrder.save();
+            }),
+        );
+
+        parentOrder.isPaid = true;
+        parentOrder.paymentStatus = "PAID";
+        await parentOrder.save();
+        return parentOrder;
+    }
+
+    if (TERMINAL_UNPAID_PAYMENT_STATUSES.includes(paymentStatus)) {
+        await releaseParentOrderStock(parentOrderId);
+        parentOrder.isPaid = false;
+        parentOrder.paymentStatus = paymentStatus;
+        await parentOrder.save();
+        return parentOrder;
+    }
+
+    parentOrder.paymentStatus = paymentStatus;
     await parentOrder.save();
+    return parentOrder;
 };

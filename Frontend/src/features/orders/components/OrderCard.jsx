@@ -1,5 +1,5 @@
-import OrderHeader from "./OrderHeader";
 import StoreOrderCard from "./StoreOrderCard";
+import OrderHeader from "./OrderHeader";
 
 const OrderCard = ({ order, cancelStoreOrder, isCancelling }) => {
     return (
@@ -11,6 +11,7 @@ const OrderCard = ({ order, cancelStoreOrder, isCancelling }) => {
                     <StoreOrderCard
                         key={storeOrder._id}
                         storeOrder={storeOrder}
+                        parentOrder={order}
                         onCancel={cancelStoreOrder}
                         isCancelling={isCancelling(storeOrder._id)}
                     />

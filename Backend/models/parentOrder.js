@@ -22,6 +22,11 @@ const parentOrderSchema = new mongoose.Schema(
             required: true,
             default: false,
         },
+        paymentStatus: {
+            type: String,
+            enum: ["PENDING", "PAID", "FAILED", "CANCELLED"],
+            default: "PENDING",
+        },
         stripeSessionId: {
             type: String,
             default: null,

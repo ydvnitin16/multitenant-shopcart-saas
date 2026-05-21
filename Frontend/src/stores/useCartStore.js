@@ -81,6 +81,8 @@ const useCartStore = create(
 
             // Clear cart
             clearCart: () => set({ cart: [] }),
+
+            setCart: (cart) => set({ cart }),
         }),
         { name: "shopcart-cart-storage" },
     ),

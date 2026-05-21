@@ -2,9 +2,19 @@ import Button from "@/components/ui/Button";
 import OrderStatusBadge from "./OrderStatusBadge";
 import OrderItems from "./OrderItems";
 
-const StoreOrderCard = ({ storeOrder, onCancel, isCancelling }) => {
+const StoreOrderCard = ({
+    storeOrder,
+    parentOrder,
+    onCancel,
+    isCancelling,
+}) => {
+    const paymentPending =
+        parentOrder?.paymentMethod === "CARD" &&
+        parentOrder?.paymentStatus === "PENDING";
     const canCancel =
-        storeOrder.status !== "DELIVERED" && storeOrder.status !== "CANCELLED";
+        !paymentPending &&
+        storeOrder.status !== "DELIVERED" &&
+        storeOrder.status !== "CANCELLED";
 
     return (
         <div className='px-6 py-5 space-y-4 border-zinc-100'>
@@ -34,6 +44,13 @@ const StoreOrderCard = ({ storeOrder, onCancel, isCancelling }) => {
             </div>
 
             <OrderItems items={storeOrder.items} />
+
+            {paymentPending && (
+                <p className='text-xs text-amber-700'>
+                    Payment is still pending in Stripe. If the payment is
+                    cancelled or fails, stock will be restored automatically.
+                </p>
+            )}
 
             {canCancel && (
                 <div className='flex justify-end'>
