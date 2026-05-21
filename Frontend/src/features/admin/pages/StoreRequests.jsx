@@ -2,19 +2,28 @@ import React from "react";
 import StoreRequestCard from "../components/StoreRequestCard";
 import useStores from "../hooks/useStores";
 import Loader from "@/components/ui/Loader";
+import Pagination from "@/components/ui/Pagination";
 
 const StoreRequests = () => {
+    const [page, setPage] = React.useState(1);
     const {
         stores,
-        setStores,
+        pagination,
         loading,
-        error,
         approveStore,
         rejectStore,
         isLoading,
     } = useStores({
         status: "PENDING",
+        page,
+        limit: 6,
     });
+
+    React.useEffect(() => {
+        if (pagination.page !== page) {
+            setPage(pagination.page);
+        }
+    }, [page, pagination.page]);
 
     if (loading) {
         return <Loader />;
@@ -25,7 +34,7 @@ const StoreRequests = () => {
                 <div className='w-full flex flex-col sm:flex-row justify-between text-3xl font-bold'>
                     <h1>Stores Requests</h1>
                     <div className='text-xl text-zinc-700'>
-                        Pending Request: ({stores.length})
+                        Pending Request: ({pagination.total})
                     </div>
                 </div>
             </div>
@@ -40,6 +49,18 @@ const StoreRequests = () => {
                     />
                 ))}
             </div>
+            {!stores.length && (
+                <div className='rounded-2xl border border-zinc-200 bg-white px-6 py-12 text-center text-zinc-500'>
+                    No pending store requests found.
+                </div>
+            )}
+            {pagination.pages > 1 && (
+                <Pagination
+                    currentPage={pagination.page}
+                    totalPages={pagination.pages}
+                    setPage={setPage}
+                />
+            )}
         </main>
     );
 };

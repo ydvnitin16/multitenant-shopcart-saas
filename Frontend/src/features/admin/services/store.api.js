@@ -11,8 +11,16 @@ export const fetchStores = async (params = {}, signal) => {
 
 export const updateStoreStatus = async (storeId, status) => {
     return fetchService({
-        endpoint: `admin/store/${storeId}/status`,
-        method: "PUT",
+        endpoint: `api/admin/stores/${storeId}/status`,
+        method: "PATCH",
         body: { status },
+    });
+};
+
+export const updateStoreActivation = async (storeId, isActive) => {
+    return fetchService({
+        endpoint: `api/admin/stores/${storeId}/activation`,
+        method: "PATCH",
+        body: { isActive },
     });
 };

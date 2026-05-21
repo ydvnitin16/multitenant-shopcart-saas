@@ -11,6 +11,7 @@ import {
 import React from "react";
 import { Link, useParams } from "react-router-dom";
 import useStoreDashboard from "../hooks/useStoreDashboard";
+import StatsCard from "@/components/ui/StatsCard";
 
 const statCards = (stats) => [
     {
@@ -95,7 +96,8 @@ export default function StoreOwnerDashboard() {
                     </h1>
 
                     <p className='mt-1 text-sm text-zinc-500'>
-                        {store?.email || "Manage your store operations from one place."}
+                        {store?.email ||
+                            "Manage your store operations from one place."}
                     </p>
                 </div>
 
@@ -121,30 +123,15 @@ export default function StoreOwnerDashboard() {
                         const Icon = item.icon;
 
                         return (
-                            <div
+                            <StatsCard
                                 key={item.title}
-                                className='rounded-2xl border border-zinc-200 bg-white p-5'
-                            >
-                                <div className='flex items-start justify-between'>
-                                    <div>
-                                        <p className='text-sm text-zinc-500'>
-                                            {item.title}
-                                        </p>
-
-                                        <h3 className='mt-2 text-2xl font-bold'>
-                                            {item.value}
-                                        </h3>
-
-                                        <p className='mt-2 text-sm text-zinc-500'>
-                                            {item.meta}
-                                        </p>
-                                    </div>
-
-                                    <div className={`rounded-xl p-3 ${item.bg}`}>
-                                        <Icon size={22} className={item.color} />
-                                    </div>
-                                </div>
-                            </div>
+                                title={item.title}
+                                value={item.value}
+                                meta={item.meta}
+                                color={item.color}
+                                bg={item.bg}
+                                Icon={Icon}
+                            />
                         );
                     })}
                 </section>
@@ -163,18 +150,23 @@ export default function StoreOwnerDashboard() {
                             </div>
 
                             <p className='text-sm font-medium text-zinc-500'>
-                                Avg order value {formatPrice(stats?.avgOrderValue || 0)}
+                                Avg order value{" "}
+                                {formatPrice(stats?.avgOrderValue || 0)}
                             </p>
                         </div>
 
                         <div className='mt-8 grid h-64 grid-cols-7 items-end gap-3'>
                             {sales.map((item) => (
-                                <div key={item.date} className='flex h-full flex-col justify-end gap-3'>
+                                <div
+                                    key={item.date}
+                                    className='flex h-full flex-col justify-end gap-3'
+                                >
                                     <div
                                         className='rounded-t-xl bg-gradient-to-t from-violet-500 to-sky-400'
                                         style={{
                                             height: `${Math.max(
-                                                (item.revenue / maxRevenue) * 100,
+                                                (item.revenue / maxRevenue) *
+                                                    100,
                                                 item.revenue > 0 ? 12 : 4,
                                             )}%`,
                                         }}
@@ -194,32 +186,26 @@ export default function StoreOwnerDashboard() {
                     </div>
 
                     <div className='space-y-5'>
-                        <div className='rounded-2xl border border-zinc-200 bg-white p-5'>
-                            <p className='text-sm text-zinc-500'>Order Flow</p>
-                            <h3 className='mt-2 text-3xl font-bold'>
-                                {stats?.todayOrders || 0}
-                            </h3>
-                            <p className='mt-2 text-sm text-zinc-500'>
-                                {stats?.shippedOrders || 0} shipped, {stats?.deliveredOrders || 0} delivered overall
-                            </p>
-                        </div>
-
-                        <div className='rounded-2xl border border-zinc-200 bg-white p-5'>
-                            <p className='text-sm text-zinc-500'>Store Contact</p>
-                            <h3 className='mt-2 text-lg font-semibold text-zinc-900'>
-                                {store?.contact || "Not available"}
-                            </h3>
-                            <p className='mt-2 text-sm text-zinc-500'>
-                                {store?.address || "No address added"}
-                            </p>
-                        </div>
+                        <StatsCard
+                            title={"Order Flow"}
+                            value={stats?.totalOrders || 0}
+                            meta={`${stats?.shippedOrders || 0} shipped,
+                                ${stats?.deliveredOrders || 0} delivered overall`}
+                        />
+                        <StatsCard
+                            title={"Store Contact"}
+                            value={store?.contact || "Not available"}
+                            meta={store?.address || "No address added"}
+                        />
                     </div>
                 </section>
 
                 <section className='grid grid-cols-1 gap-5 xl:grid-cols-3'>
                     <div className='rounded-2xl border border-zinc-200 bg-white p-5 xl:col-span-2'>
                         <div className='mb-4 flex items-center justify-between'>
-                            <h3 className='text-lg font-semibold'>Recent Orders</h3>
+                            <h3 className='text-lg font-semibold'>
+                                Recent Orders
+                            </h3>
                             <Link
                                 to={`/store/${storeSlug}/manage-orders`}
                                 className='text-sm font-medium text-blue-600 hover:text-blue-700'
@@ -232,11 +218,21 @@ export default function StoreOwnerDashboard() {
                             <table className='w-full text-sm'>
                                 <thead>
                                     <tr className='border-b border-zinc-200 text-zinc-500'>
-                                        <th className='py-3 text-left'>Order</th>
-                                        <th className='py-3 text-left'>Customer</th>
-                                        <th className='py-3 text-left'>Items</th>
-                                        <th className='py-3 text-left'>Amount</th>
-                                        <th className='py-3 text-left'>Status</th>
+                                        <th className='py-3 text-left'>
+                                            Order
+                                        </th>
+                                        <th className='py-3 text-left'>
+                                            Customer
+                                        </th>
+                                        <th className='py-3 text-left'>
+                                            Items
+                                        </th>
+                                        <th className='py-3 text-left'>
+                                            Amount
+                                        </th>
+                                        <th className='py-3 text-left'>
+                                            Status
+                                        </th>
                                     </tr>
                                 </thead>
 
@@ -252,17 +248,21 @@ export default function StoreOwnerDashboard() {
                                                 </td>
                                                 <td className='py-4'>
                                                     <p className='font-medium text-zinc-800'>
-                                                        {order.address?.name || "Customer"}
+                                                        {order.address?.name ||
+                                                            "Customer"}
                                                     </p>
                                                     <p className='text-xs text-zinc-500'>
-                                                        {order.address?.email || "No email"}
+                                                        {order.address?.email ||
+                                                            "No email"}
                                                     </p>
                                                 </td>
                                                 <td className='py-4 text-zinc-600'>
                                                     {order.itemCount || 0}
                                                 </td>
                                                 <td className='py-4 font-semibold text-zinc-800'>
-                                                    {formatPrice(order.totalAmount)}
+                                                    {formatPrice(
+                                                        order.totalAmount,
+                                                    )}
                                                 </td>
                                                 <td className='py-4'>
                                                     <span

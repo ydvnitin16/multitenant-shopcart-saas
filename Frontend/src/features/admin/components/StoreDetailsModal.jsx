@@ -9,6 +9,8 @@ import {
     Clock,
     Store as StoreIcon,
     User,
+    BadgeInfo,
+    CalendarDays,
 } from 'lucide-react';
 
 const STATUS_STYLES = {
@@ -32,7 +34,7 @@ const STATUS_STYLES = {
 const StoreDetailsModal = ({ store, onClose }) => {
     if (!store) return null;
 
-    const status = STATUS_STYLES[store.status];
+    const status = STATUS_STYLES[store.status] || STATUS_STYLES.PENDING;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-[2px]">
@@ -62,9 +64,9 @@ const StoreDetailsModal = ({ store, onClose }) => {
 
                                 <div className="mt-2 flex gap-4">
                                     <span
-                                        className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-medium rounded-lg border border-zinc-200`}
+                                        className="inline-flex items-center gap-2 px-3 py-1 text-xs font-medium rounded-lg border border-zinc-200"
                                     >
-                                        Category
+                                        {store.subscriptionPlan || "FREE"} plan
                                     </span>
                                     <span
                                         className={`inline-flex items-center gap-2 px-3 py-1 text-xs font-medium rounded-full ${status.className}`}
@@ -98,17 +100,17 @@ const StoreDetailsModal = ({ store, onClose }) => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                             <div className="flex items-center gap-2">
                                 <Mail size={14} className="text-zinc-400" />
-                                {store.email}
+                                {store.email || "Not provided"}
                             </div>
 
                             <div className="flex items-center gap-2">
                                 <Phone size={14} className="text-zinc-400" />
-                                {store.contact}
+                                {store.contact || "Not provided"}
                             </div>
 
                             <div className="flex items-center gap-2 sm:col-span-2">
                                 <MapPin size={14} className="text-zinc-400" />
-                                {store.address}
+                                {store.address || "Not provided"}
                             </div>
                         </div>
                     </section>
@@ -152,6 +154,28 @@ const StoreDetailsModal = ({ store, onClose }) => {
                         <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-xl">
                             <p className="text-zinc-500 mb-1">Store ID</p>
                             <p className="font-medium truncate">{store._id}</p>
+                        </div>
+
+                        <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-xl">
+                            <p className="text-zinc-500 mb-1 flex items-center gap-2">
+                                <BadgeInfo size={14} />
+                                Subscription Status
+                            </p>
+                            <p className="font-medium">
+                                {store.subscriptionStatus || "EXPIRED"}
+                            </p>
+                        </div>
+
+                        <div className="p-4 bg-zinc-50 border border-zinc-200 rounded-xl">
+                            <p className="text-zinc-500 mb-1 flex items-center gap-2">
+                                <CalendarDays size={14} />
+                                Created On
+                            </p>
+                            <p className="font-medium">
+                                {store.createdAt
+                                    ? new Date(store.createdAt).toLocaleString()
+                                    : "N/A"}
+                            </p>
                         </div>
                     </section>
                 </div>

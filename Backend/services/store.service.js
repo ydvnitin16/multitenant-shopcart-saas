@@ -68,13 +68,32 @@ export const updateStoreStatusService = async ({ storeId, status }) => {
         throw new ApiError(400, "Invalid store status");
 
     store.status = status;
-    if (status === "APPROVED") {
-        store.isActive = true;
-    }
+    store.isActive = status === "APPROVED";
 
     const updatedStore = await store.save();
 
     return updatedStore;
+};
+
+export const updateStoreActivationService = async ({ storeId, isActive }) => {
+    const store = await Store.findById(storeId);
+
+    if (!store) throw new ApiError(404, "Store not exist");
+
+    if (typeof isActive !== "boolean") {
+        throw new ApiError(400, "isActive must be a boolean value");
+    }
+
+    if (store.status !== "APPROVED") {
+        throw new ApiError(
+            400,
+            "Only approved stores can be activated or deactivated",
+        );
+    }
+
+    store.isActive = isActive;
+
+    return store.save();
 };
 
 export const getStoresService = async (query) => {

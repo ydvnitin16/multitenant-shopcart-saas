@@ -1,6 +1,6 @@
 import React from "react";
 
-const StatsCard = ({ title, value, change, bg, color, Icon }) => {
+const StatsCard = ({ title, value, meta, bg, color, Icon }) => {
     return (
         <div className='bg-white border border-zinc-200 rounded-2xl p-5'>
             <div className='flex justify-between items-start'>
@@ -9,8 +9,8 @@ const StatsCard = ({ title, value, change, bg, color, Icon }) => {
 
                     <h3 className='text-2xl font-bold mt-2'>{value}</h3>
 
-                    {change && (
-                        <p className='text-sm text-zinc-500 mt-2'>{change}</p>
+                    {meta && (
+                        <p className='text-sm text-zinc-500 mt-2'>{meta}</p>
                     )}
                 </div>
 

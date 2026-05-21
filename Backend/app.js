@@ -39,7 +39,7 @@ app.use(cookieParser());
 app.use("/auth", userRoutes);
 app.use("/stores", storeRoutes);
 app.use("/", productRoutes);
-app.use("/admin", adminRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/orders", orderRoutes);
 app.use("/addresses", addressRoutes);
 app.use("/store-orders", storeOrderRoutes);
