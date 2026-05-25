@@ -1,29 +1,29 @@
 import React from "react";
 import Button from "@/components/ui/Button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const Pagination = ({ currentPage, totalPages, setPage }) => {
+const Pagination = ({ onPrev, onNext, currentPage, totalPages }) => {
     return (
-        <div className='flex justify-center gap-3 mt-10'>
+        <div className='flex justify-center items-center gap-3 mt-10'>
             <Button
                 variant={currentPage === 1 ? "ghost" : "primary"}
                 disabled={currentPage === 1}
-                onClick={() => setPage((prev) => prev - 1)}
+                onClick={onPrev}
                 className=''
             >
-                Prev
+                <ChevronLeft /> Previous
             </Button>
 
             <span className='px-4 py-2'>
-                Page {currentPage} of {totalPages}
+                {currentPage} of {totalPages}
             </span>
 
             <Button
                 variant={currentPage === totalPages ? "ghost" : "primary"}
                 disabled={currentPage === totalPages}
-                onClick={() => setPage((prev) => prev + 1)}
-                className=''
+                onClick={onNext}
             >
-                Next
+                Next <ChevronRight size={18} />
             </Button>
         </div>
     );

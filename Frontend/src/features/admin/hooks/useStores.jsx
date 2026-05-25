@@ -20,22 +20,13 @@ const useStores = ({ status, page = 1, limit = 10 }) => {
     }, [limit, page, status]);
 
     const { data, loading, error, reFetch } = useFetch(endpoint);
+
     const [stores, setStores] = useState([]);
     const [loadingIds, setLoadingIds] = useState(() => new Set());
 
     useEffect(() => {
         if (data?.stores) setStores(data.stores);
     }, [data]);
-
-    const syncStore = useCallback((updatedStore) => {
-        setStores((prev) =>
-            prev
-                .map((store) =>
-                    store._id === updatedStore._id ? updatedStore : store,
-                )
-                .filter((store) => status === "ALL" || store.status === status),
-        );
-    }, [status]);
 
     const withLoading = useCallback(async (storeId, action) => {
         setLoadingIds((prev) => new Set(prev).add(storeId));
@@ -56,33 +47,28 @@ const useStores = ({ status, page = 1, limit = 10 }) => {
             const previousStores = stores;
 
             setStores((prev) =>
-                prev
-                    .map((store) =>
-                        store._id === storeId
-                            ? {
-                                  ...store,
-                                  status: newStatus,
-                                  isActive: newStatus === "APPROVED",
-                              }
-                            : store,
-                    )
-                    .filter((store) =>
-                        status === "ALL" ? true : store.status === status,
-                    ),
+                prev.map((store) =>
+                    store._id === storeId
+                        ? {
+                              ...store,
+                              status: newStatus,
+                              isActive: newStatus === "APPROVED",
+                          }
+                        : store,
+                ),
             );
 
             try {
                 const response = await withLoading(storeId, () =>
                     updateStoreStatus(storeId, newStatus),
                 );
-                syncStore(response.store);
-                await reFetch();
+                console.log(response);
             } catch (err) {
                 setStores(previousStores);
                 console.error(err.message);
             }
         },
-        [reFetch, status, stores, syncStore, withLoading],
+        [reFetch, status, stores, withLoading],
     );
 
     const toggleStoreActivation = useCallback(
@@ -96,16 +82,15 @@ const useStores = ({ status, page = 1, limit = 10 }) => {
             );
 
             try {
-                const response = await withLoading(storeId, () =>
+                await withLoading(storeId, () =>
                     updateStoreActivation(storeId, isActive),
                 );
-                syncStore(response.store);
             } catch (err) {
                 setStores(previousStores);
                 console.error(err.message);
             }
         },
-        [stores, syncStore, withLoading],
+        [stores, withLoading],
     );
 
     return {

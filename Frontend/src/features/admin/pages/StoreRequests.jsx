@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import StoreRequestCard from "../components/StoreRequestCard";
 import useStores from "../hooks/useStores";
 import Loader from "@/components/ui/Loader";
 import Pagination from "@/components/ui/Pagination";
+import { useSearchParams } from "react-router-dom";
 
 const StoreRequests = () => {
-    const [page, setPage] = React.useState(1);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const page = Number(searchParams.get("page"));
     const {
         stores,
         pagination,
@@ -16,14 +18,21 @@ const StoreRequests = () => {
     } = useStores({
         status: "PENDING",
         page,
-        limit: 6,
+        limit: 5,
     });
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (pagination.page !== page) {
-            setPage(pagination.page);
+            searchParams.set("page", pagination.page);
+            setSearchParams(searchParams);
         }
-    }, [page, pagination.page]);
+    }, [pagination.page]);
+
+    function setPage(newPage) {
+        setSearchParams({
+            page: String(newPage),
+        });
+    }
 
     if (loading) {
         return <Loader />;
@@ -54,12 +63,15 @@ const StoreRequests = () => {
                     No pending store requests found.
                 </div>
             )}
-            {pagination.pages > 1 && (
-                <Pagination
-                    currentPage={pagination.page}
-                    totalPages={pagination.pages}
-                    setPage={setPage}
-                />
+            {pagination.total > 0 && (
+                <div className='px-6 pb-6'>
+                    <Pagination
+                        currentPage={page}
+                        totalPages={pagination.pages}
+                        onPrev={() => setPage(page - 1)}
+                        onNext={() => setPage(page + 1)}
+                    />
+                </div>
             )}
         </main>
     );

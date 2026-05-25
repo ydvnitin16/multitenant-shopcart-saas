@@ -61,7 +61,9 @@ export const createStoreService = async ({
 const allowedStatuses = ["PENDING", "APPROVED", "REJECTED"];
 
 export const updateStoreStatusService = async ({ storeId, status }) => {
-    let store = await Store.findById(storeId);
+    let store = await Store.findById(storeId).select(
+        "status isActive _id user",
+    );
     if (!store) throw new ApiError(404, "Store not exist");
 
     if (!status || !allowedStatuses.includes(status))
@@ -70,13 +72,14 @@ export const updateStoreStatusService = async ({ storeId, status }) => {
     store.status = status;
     store.isActive = status === "APPROVED";
 
-    const updatedStore = await store.save();
-
-    return updatedStore;
+    await store.save();
+    return store;
 };
 
 export const updateStoreActivationService = async ({ storeId, isActive }) => {
-    const store = await Store.findById(storeId);
+    const store = await Store.findById(storeId).select(
+        "isActive status _id user",
+    );
 
     if (!store) throw new ApiError(404, "Store not exist");
 
@@ -354,10 +357,7 @@ export const getStoreDashboardService = async (store) => {
                         $sum: {
                             $cond: [
                                 {
-                                    $eq: [
-                                        "$storeOrderDoc.status",
-                                        "DELIVERED",
-                                    ],
+                                    $eq: ["$storeOrderDoc.status", "DELIVERED"],
                                 },
                                 "$quantity",
                                 0,
