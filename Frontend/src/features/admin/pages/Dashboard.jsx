@@ -22,6 +22,7 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
+import PageShell from "@/components/layout/PageShell";
 
 const statCards = (stats) => [
     {
@@ -86,24 +87,16 @@ export default function AdminDashboard() {
     }
 
     return (
-        <div className='min-h-screen bg-zinc-50'>
-            <header className='flex justify-between border-b border-zinc-200 bg-white px-6 py-5'>
-                <div>
-                    <h1 className='text-2xl font-bold tracking-tight'>
-                        Admin Dashboard
-                    </h1>
-
-                    <p className='mt-1 text-sm text-zinc-500'>
-                        Monitor and manage platform performance
-                    </p>
-                </div>
-
+        <PageShell
+            title='Admin Dashboard'
+            description='Monitor and manage platform performance'
+            actions={
                 <Button onClick={reFetch}>
                     {loading ? <InlineLoader size='sm' /> : "Refresh"}
                 </Button>
-            </header>
-
-            <main className='p-6 space-y-6'>
+            }
+        >
+            <main className='p-6 space-y-6 border-t border-zinc-300'>
                 {/* Stats card */}
                 <section className='grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3'>
                     {statCards(stats).map((item) => {
@@ -195,6 +188,6 @@ export default function AdminDashboard() {
                     </div>
                 </section>
             </main>
-        </div>
+        </PageShell>
     );
 }

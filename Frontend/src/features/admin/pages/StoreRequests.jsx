@@ -4,6 +4,7 @@ import useStores from "../hooks/useStores";
 import Loader from "@/components/ui/Loader";
 import Pagination from "@/components/ui/Pagination";
 import { useSearchParams } from "react-router-dom";
+import PageShell from "@/components/layout/PageShell";
 
 const StoreRequests = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -38,15 +39,14 @@ const StoreRequests = () => {
         return <Loader />;
     }
     return (
-        <main className='w-full flex-1 px-5 md:px-8 py-3 md:py-6'>
-            <div className='flex items-center justify-between mb-6'>
-                <div className='w-full flex flex-col sm:flex-row justify-between text-3xl font-bold'>
-                    <h1>Stores Requests</h1>
-                    <div className='text-xl text-zinc-700'>
-                        Pending Request: ({pagination.total})
-                    </div>
+        <PageShell
+            title='Stores Requests'
+            actions={
+                <div className='font-medium italic'>
+                    Pending Request: ({pagination.total})
                 </div>
-            </div>
+            }
+        >
             <div className='grid  gap-2 bg-white rounded-2xl overflow-hidden'>
                 {stores.map((store) => (
                     <StoreRequestCard
@@ -73,7 +73,7 @@ const StoreRequests = () => {
                     />
                 </div>
             )}
-        </main>
+        </PageShell>
     );
 };
 
