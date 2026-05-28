@@ -1,9 +1,10 @@
 import {
-    getStoreDashboardService,
     createStoreService,
+    getStoreFrontService,
     getStoreOrdersService,
     getStoreService,
     getStoresService,
+    getStoreStatsService,
 } from "../services/store.service.js";
 import ApiSuccess from "../utils/apiSuccess.js";
 
@@ -15,7 +16,7 @@ export const createStoreRequest = async (req, res) => {
     ApiSuccess(res, 201, "Store Request created", { store });
 };
 
-export const getUserStores = async (req, res) => {
+export const getTenantStores = async (req, res) => {
     const user = req.user.id;
     const { ...filters } = req.query;
 
@@ -29,20 +30,20 @@ export const getUserStores = async (req, res) => {
 };
 
 export const getStoreFront = async (req, res) => {
-    const { slug } = req.params;
-    const store = await getStoreService({ slug });
+    const { storeSlug } = req.params;
+    const store = await getStoreFrontService({ slug: storeSlug });
     res.status(200).json({
         success: true,
         store,
     });
 };
 
-export const getStoreDashboard = async (req, res) => {
-    const dashboard = await getStoreDashboardService(req.store);
+export const getStoreStats = async (req, res) => {
+    const stats = await getStoreStatsService(req.store);
 
     res.status(200).json({
         success: true,
-        ...dashboard,
+        ...stats,
     });
 };
 

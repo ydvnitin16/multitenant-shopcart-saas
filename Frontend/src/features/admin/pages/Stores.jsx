@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import StoreTableRow from "../components/StoreTableRow";
-import SearchBar from "../components/SearchBar";
 import useStores from "../hooks/useStores";
 import Loader from "@/components/ui/Loader";
 import StoreDetailsModal from "../components/StoreDetailsModal";

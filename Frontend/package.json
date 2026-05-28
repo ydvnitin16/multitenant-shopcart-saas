@@ -19,6 +19,7 @@
     "react-hook-form": "^7.71.0",
     "react-hot-toast": "^2.6.0",
     "react-iconly": "^2.2.10",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.12.0",
     "recharts": "^3.8.1",
     "streamifier": "^0.1.1",

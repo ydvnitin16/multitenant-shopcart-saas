@@ -7,10 +7,10 @@ import {
 import { validateCreateStoreForm } from "../middlewares/validate/store.validate.js";
 import {
     createStoreRequest,
-    getStoreDashboard,
     getStoreFront,
     getStoreOrders,
-    getUserStores,
+    getStoreStats,
+    getTenantStores,
 } from "../controllers/store.controller.js";
 import multer from "multer";
 
@@ -18,21 +18,21 @@ const router = express.Router();
 const uploads = multer({ storage: multer.memoryStorage() });
 
 router.post(
-    "/create-request",
+    "/request",
     auth,
     uploads.single("image"),
     validateCreateStoreForm,
     createStoreRequest,
 );
-router.get("/my", auth, getUserStores);
+router.get("/", auth, getTenantStores);
 router.get(
-    "/:storeSlug/dashboard",
+    "/:storeSlug/stats",
     auth,
     allowedRoles("VENDOR"),
     resolveTenant,
     isStoreApproved,
-    getStoreDashboard,
+    getStoreStats,
 );
-router.get("/:slug/public", getStoreFront);
+router.get("/:storeSlug", getStoreFront);
 
 export default router;

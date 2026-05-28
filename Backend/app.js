@@ -14,10 +14,12 @@ import storeOrderRoutes from "./routes/storeOrder.routes.js";
 import { errorHandler } from "./middlewares/error.middlewares.js";
 import stripeRoutes from "./routes/stripe.routes.js";
 import { stripeWebhookHandler } from "./controllers/stripe.controller.js";
+import morgan from "morgan";
 
 const app = express();
 dotenv.config();
 connectDB();
+app.use(morgan())
 
 // Global Middlewares
 app.use(
@@ -37,9 +39,9 @@ app.use(cookieParser());
 
 // Routes
 app.use("/auth", userRoutes);
-app.use("/stores", storeRoutes);
-app.use("/", productRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/stores", storeRoutes);
+app.use("/", productRoutes);
 app.use("/orders", orderRoutes);
 app.use("/addresses", addressRoutes);
 app.use("/store-orders", storeOrderRoutes);

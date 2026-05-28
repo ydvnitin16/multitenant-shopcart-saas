@@ -2,14 +2,14 @@ import { fetchService } from "@/services/fetchService";
 
 export const fetchMyStores = async () => {
     return fetchService({
-        endpoint: "stores/my",
+        endpoint: "api/stores",
         method: "GET",
     });
 };
 
 export const requestStore = async (data) => {
     return fetchService({
-        endpoint: "stores/create-request",
+        endpoint: "api/stores/request",
         method: "POST",
         body: data,
     });
@@ -24,14 +24,14 @@ export const fetchStoreOrders = async (storeId) => {
 
 export const fetchStoreDashboard = async (storeSlug) => {
     return fetchService({
-        endpoint: `stores/${storeSlug}/dashboard`,
+        endpoint: `api/stores/${storeSlug}/stats`,
         method: "GET",
     });
 };
 
 export const fetchPublicStore = async (slug) => {
     return fetchService({
-        endpoint: `stores/${slug}/public`,
+        endpoint: `api/stores/${slug}`,
         method: "GET",
     });
 };

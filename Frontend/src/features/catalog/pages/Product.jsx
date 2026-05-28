@@ -7,6 +7,7 @@ import InlineLoader from "@/components/ui/InlineLoader";
 import PhotoMediaGallary from "@/components/ui/ProductMediaGallary";
 import useCartStore from "../../../stores/useCartStore";
 import { formatPrice } from "@/utils/formatPrice";
+import Markdown from "react-markdown";
 
 const Product = () => {
     const { productId } = useParams();
@@ -229,7 +230,7 @@ const Product = () => {
                                 Product Description
                             </h2>
                             <p className='text-sm text-zinc-600 leading-relaxed'>
-                                {product.description}
+                                <Markdown>{product.description}</Markdown>
                             </p>
                         </div>
 

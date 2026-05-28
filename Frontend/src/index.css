@@ -8,6 +8,10 @@
   }
 }
 
+#root{
+  font-family: "Inter", sans-serif;
+}
+
 .animate-scroll {
   animation: scrollLeftToRight 25s linear infinite;
 }

@@ -100,7 +100,7 @@ export const updateStoreActivationService = async ({ storeId, isActive }) => {
 };
 
 export const getStoresService = async (query) => {
-    const stores = await Store.find(query).populate("user", "-password -role ");
+    const stores = await Store.find(query);
     return stores || [];
 };
 
@@ -229,7 +229,7 @@ export const getStoreOrdersService = async (storeId) => {
     };
 };
 
-export const getStoreDashboardService = async (store) => {
+export const getStoreStatsService = async (store) => {
     const storeObjectId = new mongoose.Types.ObjectId(store._id);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -240,38 +240,17 @@ export const getStoreDashboardService = async (store) => {
     const sevenDaysAgo = new Date(today);
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
 
-    const [
+    let [
         totalProducts,
-        pendingOrders,
-        shippedOrders,
-        deliveredOrders,
-        cancelledOrders,
         todayOrders,
+        deliveredOrders,
         lowStockProducts,
         outOfStockProducts,
         revenueSummary,
         uniqueCustomers,
-        recentOrders,
-        orderItemsSummary,
         salesLast7DaysRaw,
     ] = await Promise.all([
         Product.countDocuments({ store: storeObjectId }),
-        StoreOrder.countDocuments({
-            store: storeObjectId,
-            status: "PENDING",
-        }),
-        StoreOrder.countDocuments({
-            store: storeObjectId,
-            status: "SHIPPED",
-        }),
-        StoreOrder.countDocuments({
-            store: storeObjectId,
-            status: "DELIVERED",
-        }),
-        StoreOrder.countDocuments({
-            store: storeObjectId,
-            status: "CANCELLED",
-        }),
         StoreOrder.countDocuments({
             store: storeObjectId,
             createdAt: {
@@ -279,9 +258,13 @@ export const getStoreDashboardService = async (store) => {
                 $lt: tomorrow,
             },
         }),
+        StoreOrder.countDocuments({
+            store: storeObjectId,
+            status: "DELIVERED",
+        }),
         Product.find({
             store: storeObjectId,
-            stock: { $gt: 0, $lte: 5 },
+            stock: { $gte: 0, $lte: 5 },
         })
             .sort({ stock: 1, updatedAt: -1 })
             .limit(5)
@@ -329,44 +312,7 @@ export const getStoreDashboardService = async (store) => {
             },
         ]),
         StoreOrder.distinct("address", { store: storeObjectId }),
-        StoreOrder.find({ store: storeObjectId })
-            .populate("address")
-            .populate("parentOrder", "paymentMethod isPaid createdAt")
-            .sort({ createdAt: -1 })
-            .limit(6)
-            .lean(),
-        OrderItem.aggregate([
-            {
-                $lookup: {
-                    from: "storeorders",
-                    localField: "storeOrder",
-                    foreignField: "_id",
-                    as: "storeOrderDoc",
-                },
-            },
-            { $unwind: "$storeOrderDoc" },
-            {
-                $match: {
-                    "storeOrderDoc.store": storeObjectId,
-                },
-            },
-            {
-                $group: {
-                    _id: null,
-                    totalUnitsSold: {
-                        $sum: {
-                            $cond: [
-                                {
-                                    $eq: ["$storeOrderDoc.status", "DELIVERED"],
-                                },
-                                "$quantity",
-                                0,
-                            ],
-                        },
-                    },
-                },
-            },
-        ]),
+
         StoreOrder.aggregate([
             {
                 $match: {
@@ -394,37 +340,13 @@ export const getStoreDashboardService = async (store) => {
         ]),
     ]);
 
-    const recentOrderIds = recentOrders.map((order) => order._id);
-    const recentOrderItems = await OrderItem.find({
-        storeOrder: { $in: recentOrderIds },
-    })
-        .populate("product", "name images")
-        .lean();
-
-    const itemMap = {};
-
-    recentOrderItems.forEach((item) => {
-        const orderId = item.storeOrder.toString();
-        if (!itemMap[orderId]) itemMap[orderId] = [];
-        itemMap[orderId].push(item);
-    });
-
-    const recentOrdersWithItems = recentOrders.map((order) => ({
-        ...order,
-        items: itemMap[order._id.toString()] || [],
-        itemCount: (itemMap[order._id.toString()] || []).reduce(
-            (count, item) => count + item.quantity,
-            0,
-        ),
-    }));
-
     const salesLast7DaysMap = new Map(
         salesLast7DaysRaw.map((item) => [item._id, item]),
     );
 
     const salesLast7Days = Array.from({ length: 7 }, (_, index) => {
         const date = new Date(sevenDaysAgo);
-        date.setDate(sevenDaysAgo.getDate() + index);
+        date.setDate(sevenDaysAgo.getDate() + (index+1));
 
         const key = date.toISOString().slice(0, 10);
         const dayStats = salesLast7DaysMap.get(key);
@@ -436,6 +358,7 @@ export const getStoreDashboardService = async (store) => {
             orders: dayStats?.orders || 0,
         };
     });
+    console.log(salesLast7Days)
 
     const totals = revenueSummary[0] || {
         totalRevenue: 0,
@@ -453,19 +376,23 @@ export const getStoreDashboardService = async (store) => {
             revenueToday: totals.revenueToday || 0,
             totalOrders,
             todayOrders,
-            pendingOrders,
-            shippedOrders,
-            deliveredOrders,
-            cancelledOrders,
             totalProducts,
             lowStockCount: lowStockProducts.length,
             outOfStockCount: outOfStockProducts,
             totalCustomers,
-            avgOrderValue: totalOrders ? totalRevenue / totalOrders : 0,
-            totalUnitsSold: orderItemsSummary[0]?.totalUnitsSold || 0,
+            avgOrderValue: deliveredOrders ? totalRevenue / deliveredOrders : 0,
         },
         salesLast7Days,
-        recentOrders: recentOrdersWithItems,
         lowStockProducts,
     };
+};
+
+export const getStoreFrontService = async () => {
+    const store = await Store.findOne(query).select(
+        "name description slug address image email contact ",
+    );
+    if (!store) {
+        throw new ApiError(404, "Store not found");
+    }
+    return store;
 };
