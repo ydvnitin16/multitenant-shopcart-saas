@@ -1,19 +1,64 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useStoreOrders } from "../hooks/useStoreOrders";
 import InlineLoader from "@/components/ui/InlineLoader";
 import useVendorStoreStore from "@/stores/useVendorStoreStore";
 import { formatPrice } from "@/utils/formatPrice";
 import OrderDetailsCard from "../components/OrderDetailsCard";
 import StatsCard from "@/components/ui/StatsCard";
+import OrdersTable from "../components/OrdersTable";
+import { useParams, useSearchParams } from "react-router-dom";
+import Pagination from "@/components/ui/Pagination";
+
+const statsCard = (stats) => [
+    {
+        title: "Today Orders",
+        value: stats?.totalOrders || 0,
+    },
+    {
+        title: "Pending Orders",
+        value: stats?.pendingOrders || 0,
+    },
+    {
+        title: "Delivered Today",
+        value: stats?.deliveredToday || 0,
+    },
+    {
+        title: "Today's Revenue",
+        value: formatPrice(stats?.revenueToday || 0),
+    },
+];
 
 const ManageOrders = () => {
-    const { currentStore } = useVendorStoreStore();
-    const { orders, stats, loading, updateOrderStatus, isUpdating } =
-        useStoreOrders(currentStore?._id);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const page = Number(searchParams.get("page"));
+    const { storeSlug } = useParams();
+    const { stores } = useVendorStoreStore();
+    const currentStore = stores.find((s) => s.slug == storeSlug) || null;
+    const {
+        orders,
+        stats,
+        loading,
+        pagination,
+        updateOrderStatus,
+        isUpdating,
+    } = useStoreOrders({ storeId: currentStore?._id, page, limit: 5 });
 
     const [selectedOrderId, setSelectedOrderId] = useState(null);
     const selectedOrder =
         orders.find((order) => order._id === selectedOrderId) || null;
+
+    useEffect(() => {
+        if (pagination?.page !== page) {
+            searchParams.set("page", pagination?.page);
+            setSearchParams(searchParams);
+        }
+    }, [pagination?.page]);
+
+    function setPage(newPage) {
+        setSearchParams({
+            page: String(newPage),
+        });
+    }
 
     if (loading) {
         return (
@@ -56,33 +101,13 @@ const ManageOrders = () => {
 
                 {/* Stats */}
                 <div className='grid grid-cols-2 md:grid-cols-4 gap-4'>
-                    <div className='bg-white border border-zinc-200 rounded-2xl p-5'>
-                        <p className='text-sm text-zinc-500'>Total Orders</p>
-                        <h3 className='text-2xl font-semibold mt-2'>
-                            {stats?.todayOrders || 0}
-                        </h3>
-                    </div>
-
-                    <div className='bg-white border border-zinc-200 rounded-2xl p-5'>
-                        <p className='text-sm text-zinc-500'>Pending</p>
-                        <h3 className='text-2xl font-semibold mt-2 text-amber-600'>
-                            {stats?.pendingOrders || 0}
-                        </h3>
-                    </div>
-
-                    <div className='bg-white border border-zinc-200 rounded-2xl p-5'>
-                        <p className='text-sm text-zinc-500'>Delivered</p>
-                        <h3 className='text-2xl font-semibold mt-2 text-emerald-600'>
-                            {stats?.deliveredToday || 0}
-                        </h3>
-                    </div>
-
-                    <div className='bg-white border border-zinc-200 rounded-2xl p-5'>
-                        <p className='text-sm text-zinc-500'>Revenue</p>
-                        <h3 className='text-2xl font-semibold mt-2 text-blue-600'>
-                            {formatPrice(stats?.revenueToday || 0)}
-                        </h3>
-                    </div>
+                    {statsCard(stats).map((item, idx) => (
+                        <StatsCard
+                            key={idx}
+                            title={item.title}
+                            value={item.value}
+                        />
+                    ))}
                 </div>
 
                 {/* Orders Table */}
@@ -97,95 +122,16 @@ const ManageOrders = () => {
                         </p>
                     </div>
 
-                    <div className='overflow-x-auto'>
-                        <table className='w-full text-sm'>
-                            <thead className='bg-zinc-50 text-zinc-600'>
-                                <tr>
-                                    <th className='text-left px-6 py-4'>
-                                        Order ID
-                                    </th>
-                                    <th className='text-left px-6 py-4'>
-                                        Customer
-                                    </th>
-                                    <th className='text-left px-6 py-4'>
-                                        Payment
-                                    </th>
-                                    <th className='text-left px-6 py-4'>
-                                        Date
-                                    </th>
-                                    <th className='text-left px-6 py-4'>
-                                        Total
-                                    </th>
-                                    <th className='text-left px-6 py-4'>
-                                        Status
-                                    </th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {orders.map((order) => {
-                                    const badge =
-                                        order.status === "PENDING"
-                                            ? "bg-red-50 text-red-700"
-                                            : order.status === "DELIVERED"
-                                              ? "bg-emerald-50 text-emerald-700"
-                                              : order.status === "CANCELLED"
-                                                ? "bg-rose-50 text-rose-700"
-                                                : "bg-blue-50 text-blue-700";
-
-                                    return (
-                                        <tr
-                                            key={order._id}
-                                            onClick={() =>
-                                                setSelectedOrderId(order._id)
-                                            }
-                                            className='border-t border-zinc-100 hover:bg-zinc-50 cursor-pointer transition'
-                                        >
-                                            <td className='px-6 py-4 font-semibold text-blue-600'>
-                                                #{order._id.slice(-6)}
-                                            </td>
-
-                                            <td className='px-6 py-4'>
-                                                <div>
-                                                    <p className='font-medium text-zinc-800'>
-                                                        {order.address?.name}
-                                                    </p>
-                                                    <p className='text-xs text-zinc-500'>
-                                                        {order.address?.email}
-                                                    </p>
-                                                </div>
-                                            </td>
-
-                                            <td className='px-6 py-4 font-medium text-zinc-700'>
-                                                {
-                                                    order.parentOrder
-                                                        ?.paymentMethod
-                                                }
-                                            </td>
-
-                                            <td className='px-6 py-4 text-zinc-600'>
-                                                {new Date(
-                                                    order.createdAt,
-                                                ).toLocaleDateString()}
-                                            </td>
-
-                                            <td className='px-6 py-4 font-semibold text-zinc-800'>
-                                                {formatPrice(order.totalAmount)}
-                                            </td>
-
-                                            <td className='px-6 py-4'>
-                                                <span
-                                                    className={`px-3 py-1 rounded-full text-xs font-medium ${badge}`}
-                                                >
-                                                    {order.status}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
+                    <OrdersTable
+                        setSelectedOrderId={setSelectedOrderId}
+                        orders={orders}
+                    />
+                    <Pagination
+                        onPrev={() => setPage(page - 1)}
+                        onNext={() => setPage(page + 1)}
+                        currentPage={pagination?.page}
+                        totalPages={pagination?.pages}
+                    />
                 </div>
             </div>
 

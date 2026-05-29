@@ -9,8 +9,8 @@ import {
 const router = express.Router();
 
 // Order Routes -> user orders
-router.get('/my-orders', auth, getUserOrders);
-router.post("/place-order", auth, placeOrder);
-router.patch("/store-order/:id/cancel", auth, cancelUserStoreOrder);
+router.get('/', auth, getUserOrders);
+router.post("/", auth, placeOrder);
+router.patch("/:id/cancel", auth, cancelUserStoreOrder);
 
 export default router;

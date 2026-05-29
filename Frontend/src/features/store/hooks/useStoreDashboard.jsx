@@ -1,10 +1,10 @@
 import useFetch from "@/hooks/useFetch";
 
-const useStoreDashboard = (storeSlug) => {
+const useStoreDashboard = (storeId) => {
     const { data, loading, error, reFetch } = useFetch(
-        storeSlug ? `/api/stores/${storeSlug}/stats` : null,
+        storeId ? `/api/stores/${storeId}/stats` : null,
         {},
-        { enabled: Boolean(storeSlug) },
+        { enabled: Boolean(storeId) },
     );
 
     return {

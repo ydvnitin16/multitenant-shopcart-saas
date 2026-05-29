@@ -1,17 +1,25 @@
 import { ChevronUp, Store, Plus } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import useVendorStoreStore from "@/stores/useVendorStoreStore";
-import { useNavigate } from "react-router-dom";
+import {
+    useLocation,
+    useNavigate,
+    useParams,
+    useSearchParams,
+} from "react-router-dom";
 import StoreCapsule from "./StoreCapsule";
 
 const StoresList = () => {
     const [open, setOpen] = useState(false);
-    const { stores, currentStore, setCurrentStore } = useVendorStoreStore();
+    const { storeSlug } = useParams();
+    const { stores } = useVendorStoreStore();
     const navigate = useNavigate();
+
+    const currentStore = stores.find((s) => s.slug === storeSlug);
 
     const handleStoreChange = (storeSlug) => {
         navigate(`/store/${storeSlug}/dashboard`);
-        setCurrentStore(storeSlug);
+        // setCurrentStore(storeSlug);
         setOpen(false);
     };
 
@@ -31,7 +39,7 @@ const StoresList = () => {
                         <div className='h-9 w-9 rounded-md bg-zinc-900 text-white flex items-center justify-center overflow-hidden ring-1 ring-zinc-300'>
                             {currentStore?.image ? (
                                 <img
-                                    src={currentStore.image.url}
+                                    src={currentStore?.image.url}
                                     className='h-full w-full object-cover'
                                 />
                             ) : (
@@ -40,7 +48,7 @@ const StoresList = () => {
                         </div>
                         {/* Green dot */}
                         <span
-                            className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ${currentStore.isActive ? "bg-emerald-500" : "bg-red-500"} ring-2 ring-white`}
+                            className={`absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full ${currentStore?.isActive ? "bg-emerald-500" : "bg-red-500"} ring-2 ring-white`}
                         />
                     </div>
 
@@ -49,9 +57,9 @@ const StoresList = () => {
                             {currentStore?.name || "Select Store"}
                         </p>
                         <span
-                            className={`inline-flex items-center gap-1 text-[11px] font-medium ${currentStore.isActive ? "text-emerald-500" : "text-red-500"} `}
+                            className={`inline-flex items-center gap-1 text-[11px] font-medium ${currentStore?.isActive ? "text-emerald-500" : "text-red-500"} `}
                         >
-                            {currentStore.isActive
+                            {currentStore?.isActive
                                 ? "Store Active"
                                 : "Store Inactive"}
                         </span>

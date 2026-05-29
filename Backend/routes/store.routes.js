@@ -13,6 +13,17 @@ import {
     getTenantStores,
 } from "../controllers/store.controller.js";
 import multer from "multer";
+import { updateStoreOrderStatus } from "../controllers/order.controller.js";
+import {
+    validateProduct,
+    validateProductUpdate,
+} from "../middlewares/validate/product.validate.js";
+import {
+    createProduct,
+    deleteProduct,
+    getMyStoreProducts,
+    updateProduct,
+} from "../controllers/product.controller.js";
 
 const router = express.Router();
 const uploads = multer({ storage: multer.memoryStorage() });
@@ -24,15 +35,72 @@ router.post(
     validateCreateStoreForm,
     createStoreRequest,
 );
+
 router.get("/", auth, getTenantStores);
+
 router.get(
-    "/:storeSlug/stats",
+    "/:storeId/stats",
     auth,
     allowedRoles("VENDOR"),
     resolveTenant,
     isStoreApproved,
     getStoreStats,
 );
+
+router.get(
+    "/:storeId/orders",
+    auth,
+    allowedRoles("VENDOR"),
+    resolveTenant,
+    getStoreOrders,
+);
+
+router.patch(
+    "/orders/:id/status",
+    auth,
+    allowedRoles("VENDOR"),
+    updateStoreOrderStatus,
+);
+
 router.get("/:storeSlug", getStoreFront);
+
+// Store's Products
+router.post(
+    "/:storeId/products",
+    auth,
+    allowedRoles("VENDOR"),
+    resolveTenant,
+    isStoreApproved,
+    uploads.array("images"),
+    validateProduct,
+    createProduct,
+);
+
+router.get(
+    "/:storeId/products",
+    auth,
+    allowedRoles("VENDOR"),
+    resolveTenant,
+    isStoreApproved,
+    getMyStoreProducts,
+);
+
+router.put(
+    "/:storeId/products/:productId/update",
+    auth,
+    allowedRoles("VENDOR"),
+    resolveTenant,
+    validateProductUpdate,
+    updateProduct,
+);
+
+router.delete(
+    "/:storeId/products/:productId",
+    auth,
+    allowedRoles("VENDOR"),
+    resolveTenant,
+    isStoreApproved,
+    deleteProduct,
+);
 
 export default router;

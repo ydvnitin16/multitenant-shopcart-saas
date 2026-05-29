@@ -5,7 +5,7 @@ import { fetchAddresses } from "../controllers/address.controller.js";
 
 const router = express.Router();
 
-router.post("/add", auth, addAddress);
+router.post("/", auth, addAddress);
 router.get("/", auth, fetchAddresses);
 
 export default router;

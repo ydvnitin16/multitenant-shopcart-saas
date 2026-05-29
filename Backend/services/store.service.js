@@ -112,7 +112,11 @@ export const getStoreService = async (query) => {
     return store;
 };
 
-export const getStoreOrdersService = async (storeId) => {
+export const getStoreOrdersService = async ({
+    storeId,
+    page = 1,
+    limit = 10,
+}) => {
     if (!mongoose.Types.ObjectId.isValid(storeId)) {
         throw new ApiError(400, "Invalid store id");
     }
@@ -124,6 +128,11 @@ export const getStoreOrdersService = async (storeId) => {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
+    const perPage = Math.max(Number(limit) || 10, 1);
+    const total = await StoreOrder.countDocuments({ store: storeId });
+    const totalPages = Math.max(Math.ceil(total / perPage), 1);
+    const currentPage = Math.min(Math.max(Number(page) || 1, 1), totalPages);
+
     /* Orders List */
     const storeOrders = await StoreOrder.find({
         store: storeObjectId,
@@ -131,6 +140,8 @@ export const getStoreOrdersService = async (storeId) => {
         .populate("address")
         .populate("parentOrder", "paymentMethod isPaid createdAt")
         .sort({ createdAt: -1 })
+        .skip((currentPage - 1) * limit)
+        .limit(perPage)
         .lean();
 
     const orderIds = storeOrders.map((order) => order._id);
@@ -156,62 +167,65 @@ export const getStoreOrdersService = async (storeId) => {
     });
 
     /* Stats */
-
-    const todayOrders = await StoreOrder.countDocuments({
-        store: storeObjectId,
-        createdAt: {
-            $gte: today,
-            $lt: tomorrow,
-        },
-    });
-
-    const pendingOrders = await StoreOrder.countDocuments({
-        store: storeObjectId,
-        status: "PENDING",
-    });
-
-    const shippedOrders = await StoreOrder.countDocuments({
-        store: storeObjectId,
-        status: "SHIPPED",
-    });
-
-    const deliveredToday = await StoreOrder.countDocuments({
-        store: storeObjectId,
-        status: "DELIVERED",
-        updatedAt: {
-            $gte: today,
-            $lt: tomorrow,
-        },
-    });
-
-    const cancelledToday = await StoreOrder.countDocuments({
-        store: storeObjectId,
-        status: "CANCELLED",
-        updatedAt: {
-            $gte: today,
-            $lt: tomorrow,
-        },
-    });
-
-    const revenueAgg = await StoreOrder.aggregate([
-        {
-            $match: {
-                store: storeObjectId,
-                status: "DELIVERED",
-                updatedAt: {
-                    $gte: today,
-                    $lt: tomorrow,
+    const [
+        todayOrders,
+        pendingOrders,
+        shippedOrders,
+        deliveredToday,
+        cancelledToday,
+        revenueAgg,
+    ] = await Promise.all([
+        StoreOrder.countDocuments({
+            store: storeObjectId,
+            createdAt: {
+                $gte: today,
+                $lt: tomorrow,
+            },
+        }),
+        StoreOrder.countDocuments({
+            store: storeObjectId,
+            status: "PENDING",
+        }),
+        StoreOrder.countDocuments({
+            store: storeObjectId,
+            status: "DELIVERED",
+            updatedAt: {
+                $gte: today,
+                $lt: tomorrow,
+            },
+        }),
+        StoreOrder.countDocuments({
+            store: storeObjectId,
+            status: "SHIPPED",
+        }),
+        StoreOrder.countDocuments({
+            store: storeObjectId,
+            status: "CANCELLED",
+            updatedAt: {
+                $gte: today,
+                $lt: tomorrow,
+            },
+        }),
+        StoreOrder.aggregate([
+            {
+                $match: {
+                    store: storeObjectId,
+                    status: "DELIVERED",
+                    updatedAt: {
+                        $gte: today,
+                        $lt: tomorrow,
+                    },
                 },
             },
-        },
-        {
-            $group: {
-                _id: null,
-                total: {
-                    $sum: "$vendorEarnings",
+            {
+                $group: {
+                    _id: null,
+                    total: {
+                        $sum: "$vendorEarnings",
+                    },
                 },
             },
-        },
+        ]),
     ]);
 
     return {
@@ -226,6 +240,12 @@ export const getStoreOrdersService = async (storeId) => {
 
         orders: storeOrders,
         total: storeOrders.length,
+        pagination: {
+            total,
+            page: currentPage,
+            limit: perPage,
+            pages: totalPages,
+        },
     };
 };
 
@@ -346,7 +366,7 @@ export const getStoreStatsService = async (store) => {
 
     const salesLast7Days = Array.from({ length: 7 }, (_, index) => {
         const date = new Date(sevenDaysAgo);
-        date.setDate(sevenDaysAgo.getDate() + (index+1));
+        date.setDate(sevenDaysAgo.getDate() + (index + 1));
 
         const key = date.toISOString().slice(0, 10);
         const dayStats = salesLast7DaysMap.get(key);
@@ -358,7 +378,7 @@ export const getStoreStatsService = async (store) => {
             orders: dayStats?.orders || 0,
         };
     });
-    console.log(salesLast7Days)
+    console.log(salesLast7Days);
 
     const totals = revenueSummary[0] || {
         totalRevenue: 0,

@@ -1,4 +1,3 @@
-// import Order from "../models/order.js";
 import ApiError from "../utils/apiError.js";
 import {
     getUserOrdersService,
@@ -72,68 +71,3 @@ export const cancelUserStoreOrder = async (req, res) => {
         storeOrder,
     });
 };
-
-// // Admin -> get all orders to manage
-// const allOrders = async (req, res) => {
-//     try {
-//         const orders = await Order.find().populate("userId", "name email");
-
-//         if (!orders) return res.status(404).json({ message: "No Orders" });
-
-//         res.status(200).json({ message: "User Orders", orders });
-//     } catch (error) {
-//         res.status(500).json({
-//             message: "Server error, please try again later.",
-//         });
-//     }
-// };
-
-// // Admin -> Updates status of delivery
-// const updateStatus = async (req, res) => {
-//     const { id } = req.params;
-//     const allowedStatus = [
-//         "pending",
-//         "shipped",
-//         "out for delivery",
-//         "delivered",
-//     ];
-//     const { status } = req.body;
-//     try {
-//         const order = await Order.findById(id);
-//         console.log(order.items[0].product._id);
-//         if (!order)
-//             return res.status(404).json({
-//                 message: "Order not found",
-//             });
-
-//         if (!allowedStatus.includes(status))
-//             return res.status(404).json({
-//                 message: "Please select valid status",
-//             });
-
-//         if (status === "delivered") {
-//             for (let item of order.items) {
-//                 try {
-//                     const id = item.product._id;
-//                     const product = await Product.findById(id);
-//                     product.itemSold = product.itemSold + item.quantity;
-//                     product.save();
-//                 } catch (error) {
-//                     res.status(500).json({
-//                         message: "Server error, please try again later.",
-//                     });
-//                 }
-//             }
-//         }
-
-//         order.status = status;
-//         await order.save();
-//         res.status(200).json({ message: "Status Updated" });
-//     } catch (error) {
-//         res.status(500).json({
-//             message: "Server error, please try again later.",
-//         });
-//     }
-// };
-
-// export { placeOrder, userOrders, allOrders, updateStatus };

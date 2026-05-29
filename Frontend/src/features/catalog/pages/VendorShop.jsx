@@ -7,7 +7,7 @@ import InlineLoader from "@/components/ui/InlineLoader";
 const VendorShop = () => {
     const { storeSlug } = useParams();
     const { data, loading, error } = useFetch(
-        storeSlug ? `stores/${storeSlug}/public` : null,
+        storeSlug ? `api/stores/${storeSlug}` : null,
         {},
         { enabled: Boolean(storeSlug) },
     );

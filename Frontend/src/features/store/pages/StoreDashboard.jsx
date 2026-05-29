@@ -5,7 +5,6 @@ import {
     IndianRupee,
     Package,
     ShoppingCart,
-    Store,
     Users,
 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
@@ -22,6 +21,7 @@ import {
     YAxis,
 } from "recharts";
 import Loader from "@/components/ui/Loader";
+import useVendorStoreStore from "@/stores/useVendorStoreStore";
 
 const statCards = (stats) => [
     {
@@ -60,7 +60,12 @@ const statCards = (stats) => [
 
 const StoreDashboard = () => {
     const { storeSlug } = useParams();
-    const { dashboard, loading, error, refetch } = useStoreDashboard(storeSlug);
+    const { stores } = useVendorStoreStore();
+    const currentStore = stores.find((s) => s.slug == storeSlug);
+
+    const { dashboard, loading, error, refetch } = useStoreDashboard(
+        currentStore._id,
+    );
 
     if (loading) {
         <Loader />;

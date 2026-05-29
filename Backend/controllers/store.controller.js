@@ -49,13 +49,19 @@ export const getStoreStats = async (req, res) => {
 
 export const getStoreOrders = async (req, res) => {
     const { storeId } = req.params;
+    const { page, limit } = req.query;
 
-    const { stats, orders, total } = await getStoreOrdersService(storeId);
+    const { stats, orders, total, pagination } = await getStoreOrdersService({
+        storeId,
+        page,
+        limit,
+    });
 
     res.status(200).json({
         success: true,
         stats,
         orders,
         total,
+        pagination,
     });
 };

@@ -49,11 +49,7 @@ export const updateProductService = async (productId, store, updates) => {
 
             safeUpdates[field] = updates[field];
         }
-    }
-    console.log(updates)
-    console.log(safeUpdates)
-    console.log(product)
-    
+    }    
 
     Object.assign(product, safeUpdates);
 

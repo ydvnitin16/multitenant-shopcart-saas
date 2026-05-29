@@ -1,24 +1,34 @@
 import useFetch from "@/hooks/useFetch";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { updateStoreOrderStatus as updateStoreOrderStatusApi } from "../services/order.api";
 import toast from "react-hot-toast";
 
-export const useStoreOrders = (storeId) => {
+export const useStoreOrders = ({ storeId, page, limit }) => {
+    const endpoint = useMemo(() => {
+        const params = new URLSearchParams({
+            page: String(page),
+            limit: String(limit),
+        });
+
+        return `/api/stores/${storeId}/orders?${params.toString()}`;
+    }, [limit, page, storeId]);
+
     const [orders, setOrders] = useState([]);
     const [stats, setStats] = useState(null);
     const [loadingIds, setLoadingIds] = useState(() => new Set());
 
     const { data, loading, error, reFetch } = useFetch(
-        storeId ? `store-orders/${storeId}` : null,
+        storeId ? endpoint : null,
         {},
         { enabled: Boolean(storeId) },
     );
 
     useEffect(() => {
         if (data?.orders) {
+            
+    console.log(data);
             setOrders(data.orders || []);
             setStats(data.stats || null);
-            console.log(data.stats)
         }
     }, [data]);
 
@@ -78,13 +88,13 @@ export const useStoreOrders = (storeId) => {
         },
         [data],
     );
-
     return {
         orders,
         stats,
         loading,
         error: error?.message || null,
         refetch: reFetch,
+        pagination: data?.pagination,
         updateOrderStatus,
         isUpdating: (orderId) => loadingIds.has(orderId),
     };

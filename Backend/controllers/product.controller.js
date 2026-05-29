@@ -31,9 +31,14 @@ export const createProduct = async (req, res) => {
 
 // Admin -> Delete product
 export const deleteProduct = async (req, res) => {
-    const id = req.params.productId;
+    const { productId } = req.params;
+    const store = req.store._id;
+
     try {
-        const product = await Product.findByIdAndDelete(id);
+        const product = await Product.findByIdAndDelete({
+            _id: productId,
+            store,
+        });
 
         if (!product)
             return res.status(404).json({ message: "Product Not Exist" });
@@ -89,9 +94,9 @@ export const getProducts = async (req, res) => {
 };
 
 export const getProduct = async (req, res) => {
-    const { productId } = req.params;
-    const product = await getProductByIdService(productId);
-    console.log(product);
+    const { id } = req.params;
+    const product = await getProductByIdService(id);
+    
     res.status(200).json({ success: true, product });
 };
 
