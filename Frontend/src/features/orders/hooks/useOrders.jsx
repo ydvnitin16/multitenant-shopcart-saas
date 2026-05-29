@@ -5,7 +5,7 @@ import { cancelStoreOrder as cancelStoreOrderApi } from "../services/order.api";
 export const useOrders = () => {
     const [orders, setOrders] = useState([]);
     const [loadingIds, setLoadingIds] = useState(() => new Set());
-    const { data, loading, error, reFetch } = useFetch("orders/my-orders");
+    const { data, loading, error, reFetch } = useFetch("/api/orders/");
 
     useEffect(() => {
         if (data?.orders) {

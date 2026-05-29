@@ -1,7 +1,7 @@
 import useFetch from "@/hooks/useFetch";
 
 export const useAddresses = () => {
-    const { data, loading, error, reFetch } = useFetch("addresses");
+    const { data, loading, error, reFetch } = useFetch("api/addresses");
 
     return {
         addresses: data?.addresses || [],

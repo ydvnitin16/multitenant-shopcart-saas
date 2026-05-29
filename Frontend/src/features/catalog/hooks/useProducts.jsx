@@ -24,7 +24,7 @@ export const useProducts = ({
         return searchParams.toString();
     }, [limit, order, page, sortBy, store, storeId]);
 
-    const { data, loading, error, reFetch } = useFetch(`products?${params}`);
+    const { data, loading, error, reFetch } = useFetch(`/api/products?${params}`);
 
     return {
         products: data?.products || [],

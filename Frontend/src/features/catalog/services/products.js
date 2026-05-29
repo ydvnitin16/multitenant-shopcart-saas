@@ -35,7 +35,7 @@ export const getProductById = async (id) => {
 export const getProductsByIds = async (productIds) => {
     const ids = productIds.join(",");
     return fetchService({
-        endpoint: `products/cart?ids=${ids}`,
+        endpoint: `api/products/cart?ids=${ids}`,
         method: "GET",
     });
 };
