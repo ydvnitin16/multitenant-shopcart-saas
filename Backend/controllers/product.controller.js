@@ -1,4 +1,6 @@
 import Product from "../models/product.js";
+import ApiError from "../utils/apiError.js";
+import mongoose from "mongoose";
 import {
     getProductByIdService,
     getProductsByIdsService,
@@ -34,23 +36,20 @@ export const deleteProduct = async (req, res) => {
     const { productId } = req.params;
     const store = req.store._id;
 
-    try {
-        const product = await Product.findByIdAndDelete({
-            _id: productId,
-            store,
-        });
-
-        if (!product)
-            return res.status(404).json({ message: "Product Not Exist" });
-
-        return res
-            .status(200)
-            .json({ message: "Product Deleted Successfully" });
-    } catch (error) {
-        res.status(500).json({
-            message: "Server error. please try again later.",
-        });
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+        throw new ApiError(400, "Invalid product id");
     }
+
+    const product = await Product.findOneAndDelete({
+        _id: productId,
+        store,
+    });
+
+    if (!product) {
+        throw new ApiError(404, "Product not found in this store");
+    }
+
+    ApiSuccess(res, 200, "Product deleted successfully");
 };
 
 export const updateProduct = async (req, res) => {
@@ -87,35 +86,31 @@ export const getProducts = async (req, res) => {
         store: store || storeId,
     });
 
-    res.status(200).json({
-        success: true,
-        ...data,
-    });
+    ApiSuccess(res, 200, "Products retrieved successfully", data);
 };
 
 export const getProduct = async (req, res) => {
     const { id } = req.params;
     const product = await getProductByIdService(id);
-    
-    res.status(200).json({ success: true, product });
+
+    ApiSuccess(res, 200, "Product retrieved successfully", { product });
 };
 
 export const getCartProducts = async (req, res) => {
     const { ids } = req.query;
 
     if (!ids) {
-        return res.status(400).json({
-            success: false,
-            message: "Product IDs are required",
-        });
+        throw new ApiError(400, "Product IDs are required");
     }
 
-    const idsArray = ids.split(",");
+    const idsArray = ids
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean);
 
     const products = await getProductsByIdsService(idsArray);
 
-    return res.status(200).json({
-        success: true,
+    ApiSuccess(res, 200, "Cart products retrieved successfully", {
         products,
     });
 };

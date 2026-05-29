@@ -1,5 +1,6 @@
 import Product from "../models/product.js";
 import ApiError from "../utils/apiError.js";
+import mongoose from "mongoose";
 
 export const storeProductService = async ({
     name,
@@ -25,6 +26,10 @@ export const storeProductService = async ({
 };
 
 export const updateProductService = async (productId, store, updates) => {
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+        throw new ApiError(400, "Invalid product id");
+    }
+
     const product = await Product.findOne({ _id: productId, store });
 
     if (!product)
@@ -75,22 +80,31 @@ export const getProductsService = async ({
     order = "desc",
     store,
 }) => {
-    const skip = (page - 1) * limit;
+    const perPage = Math.min(Math.max(Number(limit) || 10, 1), 50);
+    const currentPage = Math.max(Number(page) || 1, 1);
+    const skip = (currentPage - 1) * perPage;
 
     const filter = {};
 
     if (store) {
+        if (!mongoose.Types.ObjectId.isValid(store)) {
+            throw new ApiError(400, "Invalid store id");
+        }
+
         filter.store = store;
     }
 
+    const allowedSortFields = ["createdAt", "updatedAt", "price", "mrp", "stock", "name"];
+    const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+
     const sortOption = {
-        [sortBy]: order === "desc" ? -1 : 1,
+        [safeSortBy]: order === "asc" ? 1 : -1,
     };
 
     const products = await Product.find(filter)
         .sort(sortOption)
         .skip(skip)
-        .limit(limit)
+        .limit(perPage)
         .populate("store", "name slug");
 
     const totalProducts = await Product.countDocuments(filter);
@@ -99,13 +113,18 @@ export const getProductsService = async ({
         products,
         pagination: {
             total: totalProducts,
-            page: Number(page),
-            pages: Math.ceil(totalProducts / limit),
+            page: currentPage,
+            limit: perPage,
+            pages: Math.ceil(totalProducts / perPage),
         },
     };
 };
 
 export const getProductByIdService = async (id) => {
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new ApiError(400, "Invalid product id");
+    }
+
     const product = await Product.findOne({ _id: id }).populate(
         "store",
         "name slug image",
@@ -121,6 +140,12 @@ export const getProductByIdService = async (id) => {
 export const getProductsByIdsService = async (ids) => {
     if (!Array.isArray(ids) || ids.length === 0) {
         return [];
+    }
+
+    const invalidId = ids.find((id) => !mongoose.Types.ObjectId.isValid(id));
+
+    if (invalidId) {
+        throw new ApiError(400, "Invalid product id in cart");
     }
 
     const products = await Product.find({

@@ -61,6 +61,10 @@ export const createStoreService = async ({
 const allowedStatuses = ["PENDING", "APPROVED", "REJECTED"];
 
 export const updateStoreStatusService = async ({ storeId, status }) => {
+    if (!mongoose.Types.ObjectId.isValid(storeId)) {
+        throw new ApiError(400, "Invalid store id");
+    }
+
     let store = await Store.findById(storeId).select(
         "status isActive _id user",
     );
@@ -77,6 +81,10 @@ export const updateStoreStatusService = async ({ storeId, status }) => {
 };
 
 export const updateStoreActivationService = async ({ storeId, isActive }) => {
+    if (!mongoose.Types.ObjectId.isValid(storeId)) {
+        throw new ApiError(400, "Invalid store id");
+    }
+
     const store = await Store.findById(storeId).select(
         "isActive status _id user",
     );
@@ -140,7 +148,7 @@ export const getStoreOrdersService = async ({
         .populate("address")
         .populate("parentOrder", "paymentMethod isPaid createdAt")
         .sort({ createdAt: -1 })
-        .skip((currentPage - 1) * limit)
+        .skip((currentPage - 1) * perPage)
         .limit(perPage)
         .lean();
 
@@ -188,15 +196,15 @@ export const getStoreOrdersService = async ({
         }),
         StoreOrder.countDocuments({
             store: storeObjectId,
+            status: "SHIPPED",
+        }),
+        StoreOrder.countDocuments({
+            store: storeObjectId,
             status: "DELIVERED",
             updatedAt: {
                 $gte: today,
                 $lt: tomorrow,
             },
-        }),
-        StoreOrder.countDocuments({
-            store: storeObjectId,
-            status: "SHIPPED",
         }),
         StoreOrder.countDocuments({
             store: storeObjectId,
@@ -366,7 +374,7 @@ export const getStoreStatsService = async (store) => {
 
     const salesLast7Days = Array.from({ length: 7 }, (_, index) => {
         const date = new Date(sevenDaysAgo);
-        date.setDate(sevenDaysAgo.getDate() + (index + 1));
+        date.setDate(sevenDaysAgo.getDate() + index);
 
         const key = date.toISOString().slice(0, 10);
         const dayStats = salesLast7DaysMap.get(key);
@@ -378,8 +386,6 @@ export const getStoreStatsService = async (store) => {
             orders: dayStats?.orders || 0,
         };
     });
-    console.log(salesLast7Days);
-
     const totals = revenueSummary[0] || {
         totalRevenue: 0,
         revenueToday: 0,
@@ -407,7 +413,7 @@ export const getStoreStatsService = async (store) => {
     };
 };
 
-export const getStoreFrontService = async () => {
+export const getStoreFrontService = async (query) => {
     const store = await Store.findOne(query).select(
         "name description slug address image email contact ",
     );

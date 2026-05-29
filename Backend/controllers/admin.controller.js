@@ -18,7 +18,7 @@ export const updateStoreStatus = async (req, res) => {
         await updateUserRole({ userId: store.user, role: "VENDOR" });
     }
 
-    ApiSuccess(res, 200, `Store ${status}`, store);
+    ApiSuccess(res, 200, `Store ${status}`, { store });
 };
 
 export const getStores = async (req, res) => {

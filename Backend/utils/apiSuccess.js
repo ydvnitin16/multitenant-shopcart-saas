@@ -4,7 +4,7 @@ const ApiSuccess = (res, statusCode, msg, ...dataParts) => {
 
     const data = Object.assign({}, ...dataParts);
 
-    res.status(status).json({ success: true, message, ...data });
+    return res.status(status).json({ success: true, message, ...data });
 };
 
 export default ApiSuccess;

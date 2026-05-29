@@ -1,4 +1,5 @@
 import ApiError from "../utils/apiError.js";
+import ApiSuccess from "../utils/apiSuccess.js";
 import {
     getUserOrdersService,
     placeOrderService,
@@ -24,11 +25,7 @@ export const placeOrder = async (req, res) => {
         address: selectedAddress,
     });
 
-    res.status(201).json({
-        success: true,
-        message: "Order placed successfully",
-        order,
-    });
+    ApiSuccess(res, 201, "Order placed successfully", { order });
 };
 
 // User history to check order -> get orders for that user
@@ -36,10 +33,7 @@ export const getUserOrders = async (req, res) => {
     const user = req.user.id;
     const orders = await getUserOrdersService(user);
 
-    res.status(200).json({
-        success: true,
-        orders,
-    });
+    ApiSuccess(res, 200, "Orders retrieved successfully", { orders });
 };
 
 // Get store orders
@@ -53,7 +47,7 @@ export const updateStoreOrderStatus = async (req, res) => {
         actorRole: req.user.role,
     });
 
-    res.status(200).json({ success: true, storeOrder });
+    ApiSuccess(res, 200, "Order status updated successfully", { storeOrder });
 };
 
 export const cancelUserStoreOrder = async (req, res) => {
@@ -65,9 +59,5 @@ export const cancelUserStoreOrder = async (req, res) => {
         actorRole: "USER",
     });
 
-    res.status(200).json({
-        success: true,
-        message: "Order cancelled successfully",
-        storeOrder,
-    });
+    ApiSuccess(res, 200, "Order cancelled successfully", { storeOrder });
 };

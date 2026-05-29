@@ -1,11 +1,16 @@
 import { getStoreService } from "../services/store.service.js";
 import ApiError from "../utils/apiError.js";
+import mongoose from "mongoose";
 
 export const resolveTenant = async (req, res, next) => {
     const { storeSlug, storeId } = req.params;
     const query = {};
 
     if (storeId) {
+        if (!mongoose.Types.ObjectId.isValid(storeId)) {
+            throw new ApiError(400, "Invalid store id");
+        }
+
         query._id = storeId;
     } else if (storeSlug) {
         query.slug = storeSlug;

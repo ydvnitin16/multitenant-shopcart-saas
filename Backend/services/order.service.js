@@ -4,6 +4,7 @@ import OrderItem from "../models/orderItem.js";
 import Product from "../models/product.js";
 import Address from "../models/address.js";
 import ApiError from "../utils/apiError.js";
+import mongoose from "mongoose";
 
 const STORE_ORDER_STATUSES = ["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"];
 const TERMINAL_UNPAID_PAYMENT_STATUSES = ["FAILED", "CANCELLED"];
@@ -74,11 +75,15 @@ const normalizeOrderItems = (items) => {
     const normalizedItemsMap = new Map();
 
     for (const item of items) {
-        const productId = item.product || item.productId;
+        const productId = String(item.product || item.productId || "");
         const quantity = Number(item.quantity);
 
         if (!productId) {
             throw new ApiError(400, "Each order item must include a product.");
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(productId)) {
+            throw new ApiError(400, "Each order item must include a valid product id.");
         }
 
         if (!Number.isInteger(quantity) || quantity < 1) {
@@ -119,6 +124,10 @@ export const placeOrderService = async ({
 
     if (!["COD", "CARD"].includes(paymentMethod)) {
         throw new ApiError(400, "Invalid payment method.");
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(address)) {
+        throw new ApiError(400, "Invalid address id.");
     }
 
     const deliveryAddress = await Address.findOne({
@@ -281,6 +290,10 @@ export const placeOrderService = async ({
             await ParentOrder.deleteOne({ _id: parentOrder._id });
         }
 
+        if (error instanceof ApiError) {
+            throw error;
+        }
+
         throw new ApiError(500, "Something went wrong");
     }
 
@@ -373,6 +386,10 @@ export const updateStoreOrderStatusService = async ({
     actorId,
     actorRole,
 }) => {
+    if (!mongoose.Types.ObjectId.isValid(storeOrderId)) {
+        throw new ApiError(400, "Invalid order id");
+    }
+
     if (!STORE_ORDER_STATUSES.includes(status)) {
         throw new ApiError(400, "Invalid status");
     }
@@ -445,6 +462,10 @@ export const updateParentOrderPaymentStatus = async ({
     stripeSessionId,
     stripePaymentIntentId,
 }) => {
+    if (!mongoose.Types.ObjectId.isValid(parentOrderId)) {
+        throw new ApiError(400, "Invalid order id");
+    }
+
     const parentOrder = await ParentOrder.findById(parentOrderId);
 
     if (!parentOrder) {

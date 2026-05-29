@@ -1,7 +1,9 @@
 import ParentOrder from "../models/parentOrder.js";
 import ApiError from "../utils/apiError.js";
+import ApiSuccess from "../utils/apiSuccess.js";
 import { updateParentOrderPaymentStatus } from "../services/order.service.js";
 import stripe from "./../config/stripe.js";
+import mongoose from "mongoose";
 
 const getEffectivePaymentStatus = (order) => {
     if (order?.paymentStatus) {
@@ -18,15 +20,19 @@ const getEffectivePaymentStatus = (order) => {
 export const createCheckoutSession = async (req, res) => {
     const { parentOrderId } = req.body;
 
+    if (!mongoose.Types.ObjectId.isValid(parentOrderId)) {
+        throw new ApiError(400, "Invalid order id.");
+    }
+
     const order = await ParentOrder.findOne({
         _id: parentOrderId,
         user: req.user.id,
     });
-    const paymentStatus = getEffectivePaymentStatus(order);
-
     if (!order) {
         throw new ApiError(404, "Order not found.");
     }
+
+    const paymentStatus = getEffectivePaymentStatus(order);
 
     if (order.paymentMethod !== "CARD") {
         throw new ApiError(400, "Stripe checkout is only available for card orders.");
@@ -88,7 +94,9 @@ export const createCheckoutSession = async (req, res) => {
     order.stripeSessionId = session.id;
     await order.save();
 
-    res.json({ url: session.url });
+    ApiSuccess(res, 200, "Stripe checkout session created", {
+        url: session.url,
+    });
 };
 
 export const stripeWebhookHandler = async (req, res) => {
@@ -152,6 +160,10 @@ export const cancelCheckoutSession = async (req, res) => {
         throw new ApiError(400, "parentOrderId and sessionId are required.");
     }
 
+    if (!mongoose.Types.ObjectId.isValid(parentOrderId)) {
+        throw new ApiError(400, "Invalid order id.");
+    }
+
     const order = await ParentOrder.findOne({
         _id: parentOrderId,
         user: req.user.id,
@@ -172,18 +184,14 @@ export const cancelCheckoutSession = async (req, res) => {
     const paymentStatus = getEffectivePaymentStatus(order);
 
     if (paymentStatus === "PAID") {
-        return res.status(200).json({
-            success: true,
+        return ApiSuccess(res, 200, "This order has already been paid.", {
             paymentStatus,
-            message: "This order has already been paid.",
         });
     }
 
     if (["FAILED", "CANCELLED"].includes(paymentStatus)) {
-        return res.status(200).json({
-            success: true,
+        return ApiSuccess(res, 200, "This checkout session is already unpaid.", {
             paymentStatus,
-            message: "This checkout session is already unpaid.",
         });
     }
 
@@ -201,10 +209,8 @@ export const cancelCheckoutSession = async (req, res) => {
                     stripePaymentIntentId: session.payment_intent,
                 });
 
-                return res.status(200).json({
-                    success: true,
+                return ApiSuccess(res, 200, "This order has already been paid.", {
                     paymentStatus: updatedOrder.paymentStatus,
-                    message: "This order has already been paid.",
                 });
             }
         }
@@ -222,9 +228,7 @@ export const cancelCheckoutSession = async (req, res) => {
         stripeSessionId: sessionId,
     });
 
-    return res.status(200).json({
-        success: true,
+    return ApiSuccess(res, 200, "Stripe checkout cancelled and stock restored.", {
         paymentStatus: updatedOrder.paymentStatus,
-        message: "Stripe checkout cancelled and stock restored.",
     });
 };

@@ -33,7 +33,6 @@ export const loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await getUserService({ email });
-    console.log(user)
     if (!user) throw new ApiError(404, "Invalid Credentials");
 
     const isPasswordCorrect = await bcrypt.compare(password, user.password);

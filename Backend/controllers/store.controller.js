@@ -26,25 +26,19 @@ export const getTenantStores = async (req, res) => {
     };
 
     const stores = await getStoresService(query);
-    ApiSuccess(res, 201, "Store retrieved successfully", { stores });
+    ApiSuccess(res, 200, "Stores retrieved successfully", { stores });
 };
 
 export const getStoreFront = async (req, res) => {
     const { storeSlug } = req.params;
     const store = await getStoreFrontService({ slug: storeSlug });
-    res.status(200).json({
-        success: true,
-        store,
-    });
+    ApiSuccess(res, 200, "Store retrieved successfully", { store });
 };
 
 export const getStoreStats = async (req, res) => {
     const stats = await getStoreStatsService(req.store);
 
-    res.status(200).json({
-        success: true,
-        ...stats,
-    });
+    ApiSuccess(res, 200, "Store stats retrieved successfully", stats);
 };
 
 export const getStoreOrders = async (req, res) => {
@@ -57,8 +51,7 @@ export const getStoreOrders = async (req, res) => {
         limit,
     });
 
-    res.status(200).json({
-        success: true,
+    ApiSuccess(res, 200, "Store orders retrieved successfully", {
         stats,
         orders,
         total,

@@ -2,6 +2,7 @@ import {
     addAddressService,
     getUserAddressesService,
 } from "../services/address.service.js";
+import ApiSuccess from "../utils/apiSuccess.js";
 
 export const addAddress = async (req, res) => {
     const user = req.user.id;
@@ -11,10 +12,7 @@ export const addAddress = async (req, res) => {
         user,
     });
 
-    res.status(201).json({
-        success: true,
-        address,
-    });
+    ApiSuccess(res, 201, "Address added successfully", { address });
 };
 
 export const fetchAddresses = async (req, res) => {
@@ -22,8 +20,5 @@ export const fetchAddresses = async (req, res) => {
 
     const addresses = await getUserAddressesService(user);
 
-    res.json({
-        success: true,
-        addresses,
-    });
+    ApiSuccess(res, 200, "Addresses retrieved successfully", { addresses });
 };
