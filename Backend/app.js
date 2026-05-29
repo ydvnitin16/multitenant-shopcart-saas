@@ -14,11 +14,31 @@ import { errorHandler } from "./middlewares/error.middlewares.js";
 import stripeRoutes from "./routes/stripe.routes.js";
 import { stripeWebhookHandler } from "./controllers/stripe.controller.js";
 import morgan from "morgan";
+import helmet from "helmet";
+import mongoSanitize from "express-mongo-sanitize";
+import rateLimit from "express-rate-limit";
 
 const app = express();
 dotenv.config();
 connectDB();
-app.use(morgan('dev'))
+
+app.use(morgan("dev"));
+app.use(helmet());
+
+// Rate limiting
+const authLimiter = rateLimit({
+    windowMs: 1000 * 60 * 15,
+    max: 5,
+    message: { error: "Too many requests, Please try again later!" },
+});
+const generalLimiter = rateLimit({
+    windowMs: 1000 * 60 * 15,
+    max: 100,
+    message: { error: "Too many requests, Please try again later!" },
+});
+
+app.use("/api", generalLimiter);
+app.use("/api/auth", authLimiter);
 
 // Global Middlewares
 app.use(
@@ -35,6 +55,13 @@ app.post(
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
+
+// NoSQL Sanitization
+app.use((req, res, next) => {
+    if (req.body) req.body = mongoSanitize.sanitize(req.body);
+    if (req.params) req.params = mongoSanitize.sanitize(req.params);
+    next();
+});
 
 // Routes
 app.use("/api/auth", userRoutes);
