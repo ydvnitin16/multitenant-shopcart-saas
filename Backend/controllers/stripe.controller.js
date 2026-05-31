@@ -1,23 +1,47 @@
 import ParentOrder from "../models/parentOrder.js";
+import Store from "../models/store.js";
+import Subscription from "../models/subscription.js";
 import ApiError from "../utils/apiError.js";
 import ApiSuccess from "../utils/apiSuccess.js";
 import { updateParentOrderPaymentStatus } from "../services/order.service.js";
 import stripe from "./../config/stripe.js";
 import mongoose from "mongoose";
 
-const getEffectivePaymentStatus = (order) => {
-    if (order?.paymentStatus) {
-        return order.paymentStatus;
-    }
-
-    if (order?.paymentMethod !== "CARD") {
-        return order?.isPaid ? "PAID" : "PENDING";
-    }
-
-    return order?.isPaid ? "PAID" : "PENDING";
+// Utils
+const subscriptionPriceIds = {
+    STARTER: process.env.STRIPE_STARTER_PRICE_ID,
+    PRO: process.env.STRIPE_PRO_PRICE_ID,
 };
 
-export const createCheckoutSession = async (req, res) => {
+// For Subscription
+const getSubscriptionPeriod = (subscription) => {
+    const item = subscription.items?.data?.[0];
+
+    return {
+        start: subscription.current_period_start || item?.current_period_start,
+        end: subscription.current_period_end || item?.current_period_end,
+    };
+};
+
+const getPlanFromSubscription = (subscription) => {
+    const priceId = subscription.items?.data?.[0]?.price?.id;
+    return (
+        Object.entries(subscriptionPriceIds).find(
+            ([, id]) => id === priceId,
+        )?.[0] ||
+        subscription.metadata?.plan ||
+        "FREE"
+    );
+};
+
+const mapStripeSubscriptionStatus = (status, fallbackStatus) => {
+    if (fallbackStatus) return fallbackStatus;
+    if (status === "active" || status === "trialing") return "ACTIVE";
+    if (status === "canceled" || status === "unpaid") return "CANCELLED";
+    return "EXPIRED";
+};
+
+export const createPaymentCheckoutSession = async (req, res) => {
     const { parentOrderId } = req.body;
 
     if (!mongoose.Types.ObjectId.isValid(parentOrderId)) {
@@ -32,10 +56,13 @@ export const createCheckoutSession = async (req, res) => {
         throw new ApiError(404, "Order not found.");
     }
 
-    const paymentStatus = getEffectivePaymentStatus(order);
+    const paymentStatus = order?.paymentStatus || "PENDING";
 
     if (order.paymentMethod !== "CARD") {
-        throw new ApiError(400, "Stripe checkout is only available for card orders.");
+        throw new ApiError(
+            400,
+            "Stripe checkout is only available for card orders.",
+        );
     }
 
     if (paymentStatus === "PAID") {
@@ -115,6 +142,61 @@ export const stripeWebhookHandler = async (req, res) => {
 
     try {
         switch (event.type) {
+            case "checkout.session.completed": {
+                const session = event.data.object;
+
+                if (session.mode === "subscription") {
+                    const storeId = session.metadata?.storeId;
+
+                    if (!storeId || !session.subscription) {
+                        return;
+                    }
+
+                    const subscription = await stripe.subscriptions.retrieve(
+                        session.subscription,
+                    );
+                    await syncStoreSubscription(subscription);
+                }
+
+                break;
+            }
+            case "customer.subscription.updated":
+            case "customer.subscription.deleted": {
+                const subscription = event.data.object;
+                await syncStoreSubscription(subscription);
+                break;
+            }
+            case "invoice.payment_succeeded": {
+                const invoice = event.data.object;
+
+                if (invoice.subscription) {
+                    const subscription = await stripe.subscriptions.retrieve(
+                        invoice.subscription,
+                    );
+                    await syncStoreSubscription(subscription, {
+                        stripeInvoiceId: invoice.id,
+                        amountPaid: invoice.amount_paid,
+                    });
+                }
+
+                break;
+            }
+            case "invoice.payment_failed": {
+                const invoice = event.data.object;
+
+                if (invoice.subscription) {
+                    const subscription = await stripe.subscriptions.retrieve(
+                        invoice.subscription,
+                    );
+                    await syncStoreSubscription(subscription, {
+                        stripeInvoiceId: invoice.id,
+                        amountPaid: invoice.amount_paid,
+                        fallbackStatus: "EXPIRED",
+                    });
+                }
+
+                break;
+            }
             case "payment_intent.succeeded": {
                 const paymentIntent = event.data.object;
                 const parentOrderId = paymentIntent.metadata?.parentOrderId;
@@ -125,6 +207,21 @@ export const stripeWebhookHandler = async (req, res) => {
                         paymentStatus: "PAID",
                         stripePaymentIntentId: paymentIntent.id,
                     });
+                }
+                break;
+            }
+            case "checkout.session.expired": {
+                const session = event.data.object;
+
+                if (session.mode === "payment") {
+                    const parentOrderId = session.metadata?.parentOrderId;
+
+                    if (parentOrderId) {
+                        await updateParentOrderPaymentStatus({
+                            parentOrderId,
+                            paymentStatus: "CANCELLED",
+                        });
+                    }
                 }
                 break;
             }
@@ -153,82 +250,137 @@ export const stripeWebhookHandler = async (req, res) => {
     return res.status(200).json({ received: true });
 };
 
-export const cancelCheckoutSession = async (req, res) => {
-    const { parentOrderId, sessionId } = req.body;
+export const createSubscriptionCheckoutSession = async (req, res) => {
+    const { storeId, plan } = req.body;
+    const userId = req.user.id;
 
-    if (!parentOrderId || !sessionId) {
-        throw new ApiError(400, "parentOrderId and sessionId are required.");
+    if (!["STARTER", "PRO"].includes(plan)) {
+        throw new ApiError(400, "Invalid subscription plan");
     }
 
-    if (!mongoose.Types.ObjectId.isValid(parentOrderId)) {
-        throw new ApiError(400, "Invalid order id.");
+    const selectedPriceId = subscriptionPriceIds[plan];
+
+    if (!selectedPriceId) {
+        throw new ApiError(500, "Stripe price not configured.");
     }
 
-    const order = await ParentOrder.findOne({
-        _id: parentOrderId,
-        user: req.user.id,
+    const store = await Store.findOne({ _id: storeId, user: userId });
+
+    if (!store) {
+        throw new ApiError(404, "Store not found");
+    }
+
+    if (!store?.stripeCustomerId) {
+        const customer = await stripe.customers.create({
+            name: store.name,
+            email: store.email,
+        });
+        store.stripeCustomerId = customer.id;
+        await store.save();
+    }
+
+    const session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        customer: store.stripeCustomerId,
+        line_items: [
+            {
+                price: selectedPriceId,
+                quantity: 1,
+            },
+        ],
+        success_url: `${process.env.CLIENT_URL}/store/${store.slug}/dashboard?subscription=success`,
+        cancel_url: `${process.env.CLIENT_URL}/store/${store.slug}/dashboard?subscription=cancelled`,
+        metadata: {
+            storeId: store._id.toString(),
+            plan,
+        },
+        subscription_data: {
+            metadata: {
+                storeId: store._id.toString(),
+                plan,
+            },
+        },
+    });
+    ApiSuccess(res, 200, "Subscription checkout session created", {
+        url: session.url,
+    });
+};
+
+const syncStoreSubscription = async (
+    subscription,
+    { stripeInvoiceId = null, amountPaid = null, fallbackStatus = null } = {},
+) => {
+    const storeId = subscription.metadata?.storeId;
+
+    if (!storeId) {
+        return;
+    }
+
+    const { start, end } = getSubscriptionPeriod(subscription);
+    const status = mapStripeSubscriptionStatus(
+        subscription.status,
+        fallbackStatus,
+    );
+
+    await updateStoreSubscription({
+        storeId,
+        stripeSubscriptionId: subscription.id,
+        stripeInvoiceId,
+        amountPaid,
+        plan: getPlanFromSubscription(subscription),
+        status,
+        periodStart: start,
+        periodEnd: end,
+    });
+};
+
+export const getStoreSubscription = async (req, res) => {
+    const store = req.store;
+    const subscription = await Subscription.findOne({ store: store._id }).sort({
+        createdAt: -1,
     });
 
-    if (!order) {
-        throw new ApiError(404, "Order not found.");
-    }
-
-    if (order.paymentMethod !== "CARD") {
-        throw new ApiError(400, "This order does not use Stripe checkout.");
-    }
-
-    if (order.stripeSessionId !== sessionId) {
-        throw new ApiError(400, "This Stripe session does not match the order.");
-    }
-
-    const paymentStatus = getEffectivePaymentStatus(order);
-
-    if (paymentStatus === "PAID") {
-        return ApiSuccess(res, 200, "This order has already been paid.", {
-            paymentStatus,
-        });
-    }
-
-    if (["FAILED", "CANCELLED"].includes(paymentStatus)) {
-        return ApiSuccess(res, 200, "This checkout session is already unpaid.", {
-            paymentStatus,
-        });
-    }
-
-    try {
-        await stripe.checkout.sessions.expire(sessionId);
-    } catch (error) {
-        if (error?.code === "checkout_session_completed") {
-            const session = await stripe.checkout.sessions.retrieve(sessionId);
-
-            if (session.payment_status === "paid") {
-                const updatedOrder = await updateParentOrderPaymentStatus({
-                    parentOrderId,
-                    paymentStatus: "PAID",
-                    stripeSessionId: session.id,
-                    stripePaymentIntentId: session.payment_intent,
-                });
-
-                return ApiSuccess(res, 200, "This order has already been paid.", {
-                    paymentStatus: updatedOrder.paymentStatus,
-                });
-            }
-        }
-
-        const alreadyTerminal = error?.code === "session_already_expired";
-
-        if (!alreadyTerminal) {
-            throw error;
-        }
-    }
-
-    const updatedOrder = await updateParentOrderPaymentStatus({
-        parentOrderId,
-        paymentStatus: "CANCELLED",
-        stripeSessionId: sessionId,
+    ApiSuccess(res, 200, "Subscription retrieved successfully", {
+        subscription: {
+            plan: store.subscriptionPlan,
+            status: store.subscriptionStatus,
+            expiresAt: store.subscriptionExpiresAt,
+            stripeCustomerId: store.stripeCustomerId,
+            record: subscription,
+        },
     });
+};
 
-    return ApiSuccess(res, 200, "Stripe checkout cancelled and stock restored.", {
-        paymentStatus: updatedOrder.paymentStatus,
+const updateStoreSubscription = async ({
+    storeId,
+    stripeSubscriptionId,
+    stripeInvoiceId = null,
+    amountPaid = null,
+    plan,
+    status,
+    periodStart,
+    periodEnd,
+}) => {
+    await Subscription.findOneAndUpdate(
+        { store: storeId },
+        {
+            store: storeId,
+            plan,
+            status,
+            stripeSubscriptionId,
+            stripeInvoiceId,
+            ...(amountPaid > 0 ? { amountPaid: amountPaid / 100 } : {}),
+            currentPeriodStart: periodStart
+                ? new Date(periodStart * 1000)
+                : null,
+            currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
+        },
+        { upsert: true, new: true, setDefaultsOnInsert: true },
+    );
+
+    await Store.findByIdAndUpdate(storeId, {
+        subscriptionPlan: status === "ACTIVE" ? plan : "FREE",
+        subscriptionStatus: status,
+        subscriptionExpiresAt: periodEnd ? new Date(periodEnd * 1000) : null,
     });
 };

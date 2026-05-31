@@ -5,6 +5,7 @@ import ParentOrder from "../models/parentOrder.js";
 import Product from "../models/product.js";
 import Store from "../models/store.js";
 import StoreOrder from "../models/storeOrder.js";
+import Subscription from "../models/subscription.js";
 import User from "../models/user.js";
 
 export const getAdminStoresService = async ({
@@ -65,6 +66,7 @@ export const getAdminStatsService = async () => {
         totalCustomers,
         totalRevenue,
         monthlyRevenue,
+        subscriptionRevenue,
         subscriptionPlanCounts,
         revenueLast7DaysRaw,
     ] = await Promise.all([
@@ -72,14 +74,14 @@ export const getAdminStatsService = async () => {
         Store.countDocuments({ isActive: { $eq: true } }),
         Store.countDocuments({ status: { $eq: "PENDING" } }),
         Product.countDocuments(),
-        ParentOrder.countDocuments({ isPaid: { $eq: true } }),
+        ParentOrder.countDocuments({ paymentStatus: "PAID" }),
         ParentOrder.countDocuments({
-            isPaid: { $eq: true },
+            paymentStatus: "PAID",
             createdAt: { $gt: today, $lt: tomorrow },
         }),
         User.countDocuments({ role: { $eq: "CUSTOMER" } }),
         ParentOrder.aggregate([
-            { $match: { isPaid: true } },
+            { $match: { paymentStatus: "PAID" } },
             {
                 $group: {
                     _id: null,
@@ -90,7 +92,7 @@ export const getAdminStatsService = async () => {
         ParentOrder.aggregate([
             {
                 $match: {
-                    isPaid: true,
+                    paymentStatus: "PAID",
                     updatedAt: { $gte: monthStart },
                 },
             },
@@ -98,6 +100,15 @@ export const getAdminStatsService = async () => {
                 $group: {
                     _id: null,
                     totalRevenue: { $sum: "$totalAmount" },
+                },
+            },
+        ]).then((result) => result[0]?.totalRevenue || 0),
+        Subscription.aggregate([
+            { $match: { amountPaid: { $gt: 0 } } },
+            {
+                $group: {
+                    _id: null,
+                    totalRevenue: { $sum: "$amountPaid" },
                 },
             },
         ]).then((result) => result[0]?.totalRevenue || 0),
@@ -112,7 +123,7 @@ export const getAdminStatsService = async () => {
         ParentOrder.aggregate([
             {
                 $match: {
-                    isPaid: true,
+                    paymentStatus: "PAID",
                     updatedAt: {
                         $gte: sevenDaysAgo,
                         $lt: tomorrow,
@@ -146,13 +157,6 @@ export const getAdminStatsService = async () => {
         subscriptions[_id.toLowerCase()] = count;
     });
 
-    const planEntries = Object.entries(subscriptions);
-    const mostSelectedPlanEntry = planEntries.reduce(
-        (selectedPlan, currentPlan) =>
-            currentPlan[1] > selectedPlan[1] ? currentPlan : selectedPlan,
-        ["free", 0],
-    );
-
     const revenueLast7DaysMap = new Map(
         revenueLast7DaysRaw.map((entry) => [entry._id, entry]),
     );
@@ -182,6 +186,7 @@ export const getAdminStatsService = async () => {
         totalCustomers,
         totalRevenue,
         monthlyRevenue,
+        subscriptionRevenue,
         subscriptions,
         revenueLast7Days,
     };

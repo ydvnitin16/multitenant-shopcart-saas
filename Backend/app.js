@@ -10,6 +10,7 @@ import storeRoutes from "./routes/store.routes.js";
 import productRoutes from "./routes/product.routes.js";
 import orderRoutes from "./routes/order.routes.js";
 import addressRoutes from "./routes/address.routes.js";
+import subscriptionRoutes from "./routes/subscription.routes.js";
 import { errorHandler } from "./middlewares/error.middlewares.js";
 import stripeRoutes from "./routes/stripe.routes.js";
 import { stripeWebhookHandler } from "./controllers/stripe.controller.js";
@@ -37,6 +38,7 @@ const generalLimiter = rateLimit({
     message: { error: "Too many requests, Please try again later!" },
 });
 
+// Rate limiters
 app.use("/api", generalLimiter);
 app.use("/api/auth", authLimiter);
 
@@ -47,11 +49,14 @@ app.use(
         credentials: true,
     }),
 );
+
+// Raw request of stripe webhook
 app.post(
     "/api/stripe/webhook",
     express.raw({ type: "application/json" }),
     stripeWebhookHandler,
 );
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
@@ -70,7 +75,8 @@ app.use("/api/stores", storeRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/addresses", addressRoutes);
-app.use("/api/stripe", stripeRoutes);
+app.use("/api/subscriptions", subscriptionRoutes);
+app.use("/api/payments", stripeRoutes);
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;

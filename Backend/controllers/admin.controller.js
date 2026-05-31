@@ -1,3 +1,4 @@
+import Subscription from "../models/subscription.js";
 import {
     getAdminStatsService,
     getAdminStoresService,
@@ -15,6 +16,7 @@ export const updateStoreStatus = async (req, res) => {
     const store = await updateStoreStatusService({ storeId, status });
 
     if (store.status === "APPROVED") {
+        await Subscription.create({ store: store._id });
         await updateUserRole({ userId: store.user, role: "VENDOR" });
     }
 

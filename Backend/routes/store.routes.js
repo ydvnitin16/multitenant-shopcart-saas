@@ -4,6 +4,7 @@ import {
     isStoreApproved,
     resolveTenant,
 } from "../middlewares/store.middleware.js";
+import { attachPlanFeatures, enforceProductLimit } from "../middlewares/subscription.middleware.js";
 import { validateCreateStoreForm } from "../middlewares/validate/store.validate.js";
 import {
     createStoreRequest,
@@ -71,6 +72,8 @@ router.post(
     allowedRoles("VENDOR"),
     resolveTenant,
     isStoreApproved,
+    attachPlanFeatures,
+    enforceProductLimit,
     uploads.array("images"),
     validateProduct,
     createProduct,
@@ -90,6 +93,7 @@ router.put(
     auth,
     allowedRoles("VENDOR"),
     resolveTenant,
+    isStoreApproved,
     validateProductUpdate,
     updateProduct,
 );

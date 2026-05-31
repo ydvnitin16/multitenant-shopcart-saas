@@ -11,6 +11,7 @@ const subscriptionSchema = new mongoose.Schema(
             type: String,
             enum: ["FREE", "STARTER", "PRO"],
             required: true,
+            default: 'FREE'
         },
         status: {
             type: String,
@@ -25,6 +26,11 @@ const subscriptionSchema = new mongoose.Schema(
         stripeInvoiceId: {
             type: String,
             default: null,
+        },
+        amountPaid: {
+            type: Number,
+            default: 0,
+            min: 0,
         },
         currentPeriodStart: {
             type: Date,

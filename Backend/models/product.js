@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { PRODUCT_CATEGORIES } from "../services/product.service.js";
 
 const productSchema = new mongoose.Schema(
     {
@@ -18,6 +19,8 @@ const productSchema = new mongoose.Schema(
         category: {
             type: String,
             required: true,
+            enum: PRODUCT_CATEGORIES,
+            trim: true,
         },
         mrp: {
             type: Number,

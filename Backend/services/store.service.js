@@ -420,5 +420,9 @@ export const getStoreFrontService = async (query) => {
     if (!store) {
         throw new ApiError(404, "Store not found");
     }
+
+    if (store.status !== "APPROVED") {
+        throw new ApiError(400, "Store is not approved");
+    }
     return store;
 };

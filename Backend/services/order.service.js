@@ -9,17 +9,8 @@ import mongoose from "mongoose";
 const STORE_ORDER_STATUSES = ["PENDING", "SHIPPED", "DELIVERED", "CANCELLED"];
 const TERMINAL_UNPAID_PAYMENT_STATUSES = ["FAILED", "CANCELLED"];
 
-const getEffectivePaymentStatus = (parentOrder) => {
-    if (parentOrder?.paymentStatus) {
-        return parentOrder.paymentStatus;
-    }
-
-    if (parentOrder?.paymentMethod !== "CARD") {
-        return parentOrder?.isPaid ? "PAID" : "PENDING";
-    }
-
-    return parentOrder?.isPaid ? "PAID" : "PENDING";
-};
+const getEffectivePaymentStatus = (parentOrder) =>
+    parentOrder?.paymentStatus || "PENDING";
 
 const restoreStoreOrderStock = async (storeOrderId) => {
     const orderItems = await OrderItem.find({
@@ -41,6 +32,19 @@ const restoreStoreOrderStock = async (storeOrderId) => {
 };
 
 const syncParentOrderPaymentStatus = async (parentOrderId) => {
+    const parentOrder = await ParentOrder.findById(parentOrderId).select(
+        "paymentMethod paymentStatus",
+    );
+
+    if (!parentOrder) return;
+
+    if (
+        parentOrder.paymentMethod === "CARD" &&
+        parentOrder.paymentStatus === "PAID"
+    ) {
+        return;
+    }
+
     const activeStoreOrders = await StoreOrder.find({
         parentOrder: parentOrderId,
         status: { $ne: "CANCELLED" },
@@ -48,11 +52,20 @@ const syncParentOrderPaymentStatus = async (parentOrderId) => {
         .select("isPaid")
         .lean();
 
-    const isPaid =
-        activeStoreOrders.length > 0 &&
-        activeStoreOrders.every((order) => order.isPaid);
+    if (!activeStoreOrders.length) {
+        await ParentOrder.updateOne(
+            { _id: parentOrderId },
+            { isPaid: false, paymentStatus: "CANCELLED" },
+        );
+        return;
+    }
 
-    await ParentOrder.updateOne({ _id: parentOrderId }, { isPaid });
+    const isPaid = activeStoreOrders.every((order) => order.isPaid);
+
+    await ParentOrder.updateOne(
+        { _id: parentOrderId },
+        { isPaid, paymentStatus: isPaid ? "PAID" : "PENDING" },
+    );
 };
 
 const releaseParentOrderStock = async (parentOrderId) => {
@@ -83,7 +96,10 @@ const normalizeOrderItems = (items) => {
         }
 
         if (!mongoose.Types.ObjectId.isValid(productId)) {
-            throw new ApiError(400, "Each order item must include a valid product id.");
+            throw new ApiError(
+                400,
+                "Each order item must include a valid product id.",
+            );
         }
 
         if (!Number.isInteger(quantity) || quantity < 1) {
@@ -439,6 +455,17 @@ export const updateStoreOrderStatusService = async ({
         );
     }
 
+    if (
+        status === "CANCELLED" &&
+        storeOrder.parentOrder?.paymentMethod === "CARD" &&
+        getEffectivePaymentStatus(storeOrder.parentOrder) === "PAID"
+    ) {
+        throw new ApiError(
+            400,
+            "Paid card orders cannot be cancelled from store panel.",
+        );
+    }
+
     storeOrder.status = status;
 
     if (status === "DELIVERED") {
@@ -478,6 +505,13 @@ export const updateParentOrderPaymentStatus = async ({
 
     const currentPaymentStatus = getEffectivePaymentStatus(parentOrder);
 
+    if (
+        currentPaymentStatus === "CANCELLED" ||
+        currentPaymentStatus === "FAILED"
+    ) {
+        return parentOrder;
+    }
+
     if (stripeSessionId && !parentOrder.stripeSessionId) {
         parentOrder.stripeSessionId = stripeSessionId;
     }
@@ -487,7 +521,7 @@ export const updateParentOrderPaymentStatus = async ({
     }
 
     if (
-        currentPaymentStatus === "PAID" &&
+        currentPaymentStatus === "PAID" && // if already paid dont move further return here
         paymentStatus !== "PAID"
     ) {
         await parentOrder.save();

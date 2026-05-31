@@ -76,14 +76,15 @@ export const getMyStoreProducts = async (req, res) => {
 };
 
 export const getProducts = async (req, res) => {
-    const { page, limit, sortBy, order, storeId, store } = req.query;
+    const { page, limit, sortBy, order, storeId, store, category } = req.query;
 
     const data = await getProductsService({
-        page: Number(page) || 1,
-        limit: Number(limit) || 10,
-        sortBy: sortBy || "createdAt",
-        order: order || "desc",
-        store: store || storeId,
+        page,
+        limit,
+        sortBy,
+        order,
+        store: store || storeId || null,
+        category,
     });
 
     ApiSuccess(res, 200, "Products retrieved successfully", data);

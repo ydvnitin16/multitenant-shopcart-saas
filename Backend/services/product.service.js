@@ -1,6 +1,20 @@
 import Product from "../models/product.js";
+import Store from "../models/store.js";
 import ApiError from "../utils/apiError.js";
 import mongoose from "mongoose";
+
+export const PRODUCT_CATEGORIES = [
+    "Electronics",
+    "Fashion",
+    "Home",
+    "Beauty",
+    "Sports",
+    "Books",
+    "Toys",
+    "Groceries",
+    "Automotive",
+    "Other",
+];
 
 export const storeProductService = async ({
     name,
@@ -12,6 +26,10 @@ export const storeProductService = async ({
     stock,
     store,
 }) => {
+    if (!PRODUCT_CATEGORIES.includes(category)) {
+        throw new ApiError(400, "Invalid category");
+    }
+
     const product = await Product.create({
         name,
         description,
@@ -52,9 +70,10 @@ export const updateProductService = async (productId, store, updates) => {
                 continue;
             }
 
-            safeUpdates[field] = updates[field];
+            safeUpdates[field] =
+                field === "category" ? updates[field].trim() : updates[field];
         }
-    }    
+    }
 
     Object.assign(product, safeUpdates);
 
@@ -79,38 +98,79 @@ export const getProductsService = async ({
     sortBy = "createdAt",
     order = "desc",
     store,
+    category,
 }) => {
     const perPage = Math.min(Math.max(Number(limit) || 10, 1), 50);
     const currentPage = Math.max(Number(page) || 1, 1);
     const skip = (currentPage - 1) * perPage;
 
     const filter = {};
+    const activeStoreFilter = { status: "APPROVED", isActive: true };
 
     if (store) {
         if (!mongoose.Types.ObjectId.isValid(store)) {
             throw new ApiError(400, "Invalid store id");
         }
 
+        const activeStore = await Store.findOne({
+            _id: store,
+            ...activeStoreFilter,
+        }).select("_id");
+
+        if (!activeStore) {
+            return {
+                products: [],
+                categories: PRODUCT_CATEGORIES,
+                pagination: {
+                    total: 0,
+                    page: currentPage,
+                    limit: perPage,
+                    pages: 0,
+                },
+            };
+        }
+
         filter.store = store;
+    } else {
+        const activeStoreIds =
+            await Store.find(activeStoreFilter).distinct("_id");
+        filter.store = { $in: activeStoreIds };
     }
 
-    const allowedSortFields = ["createdAt", "updatedAt", "price", "mrp", "stock", "name"];
-    const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : "createdAt";
+    const categoryFilterBase = { ...filter };
+    const categories = await Product.distinct("category", categoryFilterBase);
+
+    if (category) {
+        if (!PRODUCT_CATEGORIES.includes(category)) {
+            throw new ApiError(400, "Invalid category");
+        }
+
+        filter.category = category;
+    }
+
+    const allowedSortFields = ["createdAt", "price", "name"];
+    const safeSortBy = allowedSortFields.includes(sortBy)
+        ? sortBy
+        : "createdAt";
 
     const sortOption = {
         [safeSortBy]: order === "asc" ? 1 : -1,
     };
 
-    const products = await Product.find(filter)
-        .sort(sortOption)
-        .skip(skip)
-        .limit(perPage)
-        .populate("store", "name slug");
+    const [products, totalProducts] = await Promise.all([
+        Product.find(filter)
+            .sort(sortOption)
+            .skip(skip)
+            .limit(perPage)
+            .populate("store", "name slug")
+            .lean(),
 
-    const totalProducts = await Product.countDocuments(filter);
+        Product.countDocuments(filter),
+    ]);
 
     return {
         products,
+        categories: PRODUCT_CATEGORIES,
         pagination: {
             total: totalProducts,
             page: currentPage,
@@ -127,10 +187,14 @@ export const getProductByIdService = async (id) => {
 
     const product = await Product.findOne({ _id: id }).populate(
         "store",
-        "name slug image",
+        "name slug image status isActive",
     );
 
-    if (!product) {
+    if (
+        !product ||
+        !product.store?.isActive ||
+        product.store?.status !== "APPROVED"
+    ) {
         throw new ApiError(404, "Product not found");
     }
 
@@ -150,7 +214,10 @@ export const getProductsByIdsService = async (ids) => {
 
     const products = await Product.find({
         _id: { $in: ids },
-    });
+    }).populate("store", "status isActive");
 
-    return products;
+    return products.filter(
+        (product) =>
+            product.store?.isActive && product.store?.status === "APPROVED",
+    );
 };
