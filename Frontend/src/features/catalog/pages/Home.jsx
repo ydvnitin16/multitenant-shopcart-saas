@@ -3,7 +3,6 @@ import HeroSection from "../components/HeroSection";
 import Features from "../components/Features";
 import ProductCard from "../components/ProductCard";
 import SectionWrapper from "../components/SectionWrapper";
-import { newArrivalsProducts } from "../data/productsData.js";
 import CategoriesMarquee from "../components/CategoriesMarquee";
 import { categoriesData } from "../data/categoriesData";
 import { useProducts } from "../hooks/useProducts";
@@ -46,7 +45,7 @@ const Home = () => {
                     subtitle='Launched this month. Grab them before they are gone.'
                     action={{
                         text: "View All Products",
-                        link: "/products",
+                        link: "/shop",
                     }}
                 >
                     {newArrivalsProductsLoading ? (
@@ -76,7 +75,7 @@ const Home = () => {
                     subtitle='The most popular products in our marketplace.'
                     action={{
                         text: "View All Products",
-                        link: "/products",
+                        link: "/shop",
                     }}
                 >
                     {bestSellingProductsLoading ? (

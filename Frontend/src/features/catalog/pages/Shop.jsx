@@ -4,6 +4,7 @@ import { useProducts } from "../hooks/useProducts";
 import Pagination from "@/components/ui/Pagination";
 import InlineLoader from "@/components/ui/InlineLoader";
 import { PRODUCT_CATEGORIES } from "../data/categoriesData";
+import { useSearchParams } from "react-router-dom";
 
 const Shop = () => {
     const [page, setPage] = useState(1);
@@ -24,7 +25,7 @@ const Shop = () => {
     return (
         <div className='max-w-7xl mx-auto px-4 py-10 mt-10'>
             <div className='flex gap-8'>
-                {/* 🔹 Sidebar */}
+                {/* Sidebar */}
                 <aside className='w-64 hidden lg:block'>
                     <div className='sticky top-24 space-y-10'>
                         {/* Category */}
@@ -93,7 +94,7 @@ const Shop = () => {
                     </div>
                 </aside>
 
-                {/* 🔹 Products Section */}
+                {/* Products Section */}
                 <div className='flex-1'>
                     {/* Header */}
                     <div className='flex justify-between items-center mb-6'>
