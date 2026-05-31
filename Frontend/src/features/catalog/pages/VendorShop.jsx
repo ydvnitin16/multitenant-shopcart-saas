@@ -3,9 +3,11 @@ import ProductCard from "../components/ProductCard";
 import { useProducts } from "../hooks/useProducts";
 import useFetch from "@/hooks/useFetch";
 import InlineLoader from "@/components/ui/InlineLoader";
+import { useState } from "react";
 
 const VendorShop = () => {
     const { storeSlug } = useParams();
+    const [category, setCategory] = useState("");
     const { data, loading, error } = useFetch(
         storeSlug ? `api/stores/${storeSlug}` : null,
         {},
@@ -14,11 +16,13 @@ const VendorShop = () => {
     const store = data?.store;
     const {
         products,
+        categories,
         loading: productsLoading,
         error: productsError,
     } = useProducts({
         store: store?._id,
         limit: 50,
+        category,
     });
     const errorMessage = error?.message || productsError;
 
@@ -127,12 +131,27 @@ const VendorShop = () => {
             {/* Products Section */}
             <div className='max-w-6xl mx-auto px-6 mt-14'>
                 <div className='flex items-center justify-between mb-6'>
-                    <h2 className='text-xl font-semibold text-zinc-900'>
-                        Products
-                    </h2>
-                    <p className='text-sm text-zinc-500'>
-                        Showing {products.length} products
-                    </p>
+                    <div>
+                        <h2 className='text-xl font-semibold text-zinc-900'>
+                            {category || "Products"}
+                        </h2>
+                        <p className='text-sm text-zinc-500'>
+                            Showing {products.length} products
+                        </p>
+                    </div>
+
+                    <select
+                        value={category}
+                        className='rounded-lg bg-white px-3 py-2 text-sm text-zinc-700 outline-none ring-1 ring-zinc-200'
+                        onChange={(e) => setCategory(e.target.value)}
+                    >
+                        <option value=''>All categories</option>
+                        {categories.map((item) => (
+                            <option key={item} value={item}>
+                                {item}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
                 <div className='grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'>
@@ -142,6 +161,7 @@ const VendorShop = () => {
                             id={product._id}
                             image={product.images?.[0]}
                             name={product.name}
+                            category={product.category}
                             price={product.price}
                             mrp={product.mrp}
                             inStock={Number(product.stock) > 0}

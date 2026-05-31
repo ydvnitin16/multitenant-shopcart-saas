@@ -6,7 +6,7 @@ const useUpdateStock = ({ setProducts }) => {
     // Hook logic to update stock status
 
     const updateStock = useCallback(
-        async ({ storeSlug, productId, inStock }) => {
+        async ({ storeId, productId, inStock }) => {
             const nextStock = inStock ? 0 : 1;
             try {
                 setProducts((prevProducts) =>
@@ -17,7 +17,7 @@ const useUpdateStock = ({ setProducts }) => {
                     ),
                 );
                 await updateProductStock({
-                    storeSlug,
+                    storeId,
                     productId,
                     inStock,
                 });

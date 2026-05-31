@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { formatPrice } from "@/utils/formatPrice";
 import {
     AlertTriangle,
@@ -7,7 +7,7 @@ import {
     ShoppingCart,
     Users,
 } from "lucide-react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import useStoreDashboard from "../hooks/useStoreDashboard";
 import StatsCard from "@/components/ui/StatsCard";
 import PageShell from "@/components/layout/PageShell";
@@ -22,6 +22,10 @@ import {
 } from "recharts";
 import Loader from "@/components/ui/Loader";
 import useVendorStoreStore from "@/stores/useVendorStoreStore";
+import Badge from "@/components/ui/Badge";
+import { subscriptionBillingCheckout } from "../services/subscription.api";
+import SubscriptionModal from "../components/SubscriptionModal";
+import toast from "react-hot-toast";
 
 const statCards = (stats) => [
     {
@@ -60,15 +64,19 @@ const statCards = (stats) => [
 
 const StoreDashboard = () => {
     const { storeSlug } = useParams();
+    const [searchParams] = useSearchParams();
     const { stores } = useVendorStoreStore();
     const currentStore = stores.find((s) => s.slug == storeSlug);
+    const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] =
+        useState(false);
+    const [loadingPlan, setLoadingPlan] = useState(null);
 
     const { dashboard, loading, error, refetch } = useStoreDashboard(
-        currentStore._id,
+        currentStore?._id,
     );
 
     if (loading) {
-        <Loader />;
+        return <Loader />;
     }
 
     if (error) {
@@ -85,20 +93,59 @@ const StoreDashboard = () => {
     }
 
     const store = dashboard?.store;
+    const displayStore = store || currentStore;
     const stats = dashboard?.stats;
     const sales = dashboard?.salesLast7Days || [];
     const lowStockProducts = dashboard?.lowStockProducts || [];
     const sevenDaysRevenue = sales.reduce((acc, curr) => acc + curr.revenue, 0);
 
+    const handlePlanCheckout = async (plan) => {
+        try {
+            setLoadingPlan(plan);
+            const data = await subscriptionBillingCheckout(
+                displayStore?._id,
+                plan,
+            );
+            window.location.href = data.url;
+        } catch (err) {
+            toast.error(err.message || "Unable to start subscription checkout");
+            setLoadingPlan(null);
+        }
+    };
+
     return (
         <>
             <PageShell
-                title={store?.name || "Store Dashboard"}
+                title={displayStore?.name || "Store Dashboard"}
                 description={
-                    store?.email ||
+                    displayStore?.email ||
                     "Manage your store operations from one place."
                 }
-                actions={<Button onClick={refetch}>Refresh</Button>}
+                actions={
+                    <>
+                        <div className='flex items-center justify-between gap-2 w-full px-6 py-4 border border-zinc-300 rounded-2xl bg-white'>
+                            <Badge
+                                content={`${displayStore?.subscriptionPlan || "FREE"} plan`}
+                                variant={
+                                    displayStore?.subscriptionStatus === "ACTIVE"
+                                        ? "green"
+                                        : "yellow"
+                                }
+                                className={"rounded-md"}
+                            />
+                            <Button
+                                onClick={() => setIsSubscriptionModalOpen(true)}
+                                size='sm'
+                                variant='secondary'
+                            >
+                                Upgrade Plan
+                            </Button>
+                            <Button size='sm' onClick={refetch}>
+                                Refresh
+                            </Button>
+                        </div>
+                    </>
+                }
             >
                 <main className='p-6 space-y-6'>
                     <section className='grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4'>
@@ -221,6 +268,13 @@ const StoreDashboard = () => {
                     </section>
                 </main>
             </PageShell>
+            <SubscriptionModal
+                isOpen={isSubscriptionModalOpen}
+                onClose={() => setIsSubscriptionModalOpen(false)}
+                onChoosePlan={handlePlanCheckout}
+                loadingPlan={loadingPlan}
+                currentPlan={displayStore?.subscriptionPlan}
+            />
         </>
     );
 };

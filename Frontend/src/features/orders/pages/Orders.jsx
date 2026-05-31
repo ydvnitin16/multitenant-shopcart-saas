@@ -4,7 +4,6 @@ import toast from "react-hot-toast";
 import useCartStore from "@/stores/useCartStore";
 import { useOrders } from "../hooks/useOrders";
 import OrderCard from "../components/OrderCard";
-import { cancelCheckoutSession } from "@/services/stripe";
 
 const Orders = () => {
     const navigate = useNavigate();
@@ -30,55 +29,6 @@ const Orders = () => {
         navigate("/orders", { replace: true });
     }, [clearCart, navigate, refetch, searchParams]);
 
-    useEffect(() => {
-        const checkoutStatus = searchParams.get("checkout");
-        const parentOrderId = searchParams.get("parentOrderId");
-        const sessionId = searchParams.get("session_id");
-
-        if (
-            checkoutStatus !== "cancelled" ||
-            !parentOrderId ||
-            !sessionId
-        ) {
-            return;
-        }
-
-        let isActive = true;
-
-        const syncCancelledCheckout = async () => {
-            try {
-                const response = await cancelCheckoutSession({
-                    parentOrderId,
-                    sessionId,
-                });
-
-                if (!isActive) return;
-
-                await refetch();
-                toast.error(
-                    response?.message ||
-                        "Payment cancelled. Stock has been restored.",
-                );
-            } catch (error) {
-                if (!isActive) return;
-
-                toast.error(
-                    error?.message ||
-                        "We could not sync the cancelled payment.",
-                );
-            } finally {
-                if (isActive) {
-                    navigate("/orders", { replace: true });
-                }
-            }
-        };
-
-        syncCancelledCheckout();
-
-        return () => {
-            isActive = false;
-        };
-    }, [navigate, refetch, searchParams]);
 
     if (loading) {
         return (

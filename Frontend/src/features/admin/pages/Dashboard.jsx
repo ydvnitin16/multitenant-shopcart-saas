@@ -7,7 +7,7 @@ import {
     IndianRupee,
     Clock,
     Users,
-    RotateCcw,
+    CreditCard,
 } from "lucide-react";
 import useAdminStats from "../hooks/useAdminStats";
 import StatsCard from "@/components/ui/StatsCard";
@@ -34,6 +34,14 @@ const statCards = (stats) => [
         bg: "bg-emerald-50",
     },
     {
+        title: "Subscription Revenue",
+        value: formatPrice(stats?.subscriptionRevenue || 0),
+        meta: "Recorded Stripe subscription payments",
+        icon: CreditCard,
+        color: "text-blue-600",
+        bg: "bg-blue-50",
+    },
+    {
         title: "Products",
         value: stats?.totalProducts || 0,
         meta: "Across all stores",
@@ -58,14 +66,6 @@ const statCards = (stats) => [
         bg: "bg-sky-50",
     },
     {
-        title: "Pending Requests",
-        value: stats?.pendingRequests || 0,
-        meta: "Waiting for approval",
-        icon: Clock,
-        color: "text-yellow-600",
-        bg: "bg-yellow-50",
-    },
-    {
         title: "Customers",
         value: stats?.totalCustomers || 0,
         meta: "Platform users",
@@ -79,7 +79,7 @@ export default function AdminDashboard() {
     const { stats, loading, error, reFetch } = useAdminStats();
 
     if (loading) {
-        <Loader />;
+        return <Loader />;
     }
 
     if (error) {

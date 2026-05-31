@@ -3,7 +3,16 @@ import { formatPrice } from "@/utils/formatPrice";
 import { Heart, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-const ProductCard = ({ id, image, name, price, mrp, inStock, sold = 0 }) => {
+const ProductCard = ({
+    id,
+    image,
+    name,
+    price,
+    mrp,
+    category,
+    inStock,
+    sold = 0,
+}) => {
     const navigate = useNavigate();
 
     const hasDiscount = mrp && mrp > price;

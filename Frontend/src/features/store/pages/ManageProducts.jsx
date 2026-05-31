@@ -10,21 +10,25 @@ import ProductListItem from "../components/ProductListItem";
 import useUpdateProduct from "../hooks/useUpdateProduct";
 import useDeleteProduct from "../hooks/useDeleteProduct";
 import UpdateProductModal from "../components/UpdateProductModal";
+import useVendorStoreStore from "@/stores/useVendorStoreStore";
 
 const ManageProducts = () => {
     const { storeSlug } = useParams();
+    const { stores } = useVendorStoreStore();
+    const currentStore = stores.find((store) => store.slug === storeSlug);
+    const storeId = currentStore?._id;
 
-    const { loading, products, setProducts } = useStoreProducts({ storeSlug });
+    const { loading, products, setProducts } = useStoreProducts({ storeId });
     const {
         updateProduct,
         loading: updateLoading,
         error: updateError,
-    } = useUpdateProduct({ storeSlug, setProducts });
+    } = useUpdateProduct({ storeId, setProducts });
     const {
         deleteProduct,
         loading: deleteLoading,
         error: deleteError,
-    } = useDeleteProduct({ storeSlug, setProducts });
+    } = useDeleteProduct({ storeId, setProducts });
 
     const [selectedProduct, setSelectedProduct] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -104,14 +108,6 @@ const ManageProducts = () => {
                     </p>
                 </div>
 
-                {/* Search */}
-                <div className='max-w-sm'>
-                    <Input
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder='Search by name or category...'
-                    />
-                </div>
 
                 {/* Main Layout */}
                 <div className='grid grid-cols-1 lg:grid-cols-12 gap-6 items-start'>

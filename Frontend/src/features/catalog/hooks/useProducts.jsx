@@ -8,6 +8,7 @@ export const useProducts = ({
     order = "desc",
     storeId,
     store,
+    category,
 }) => {
     const params = useMemo(() => {
         const searchParams = new URLSearchParams({
@@ -21,13 +22,18 @@ export const useProducts = ({
             searchParams.set("store", store || storeId);
         }
 
+        if (category) {
+            searchParams.set("category", category);
+        }
+
         return searchParams.toString();
-    }, [limit, order, page, sortBy, store, storeId]);
+    }, [category, limit, order, page, sortBy, store, storeId]);
 
     const { data, loading, error, reFetch } = useFetch(`/api/products?${params}`);
 
     return {
         products: data?.products || [],
+        categories: data?.categories || [],
         loading,
         error: error?.message || null,
         pagination: data?.pagination || {

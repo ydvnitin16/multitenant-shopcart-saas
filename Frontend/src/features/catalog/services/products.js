@@ -7,6 +7,7 @@ export const getProducts = async ({
     order = "desc",
     storeId,
     store,
+    category,
 }) => {
     const params = new URLSearchParams({
         sortBy,
@@ -17,6 +18,10 @@ export const getProducts = async ({
 
     if (store || storeId) {
         params.set("store", store || storeId);
+    }
+
+    if (category) {
+        params.set("category", category);
     }
 
     return fetchService({

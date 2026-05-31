@@ -1,12 +1,12 @@
 import useFetch from "@/hooks/useFetch";
 import { useEffect, useMemo, useState } from "react";
 
-const useStoreProducts = ({ storeSlug }) => {
+const useStoreProducts = ({ storeId }) => {
     const [products, setProducts] = useState([]);
     const { data, loading, error, reFetch } = useFetch(
-        storeSlug ? `${storeSlug}/products` : null,
+        storeId ? `/api/stores/${storeId}/products` : null,
         {},
-        { enabled: Boolean(storeSlug) },
+        { enabled: Boolean(storeId) },
     );
 
     const total = useMemo(() => data?.total || 0, [data?.total]);

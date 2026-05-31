@@ -21,7 +21,7 @@ export const usePlaceOrder = ({ clearCart }) => {
                 navigate("/orders");
             } else if (payload.paymentMethod === "CARD") {
                 const res = await fetchService({
-                    endpoint: "api/stripe/checkout",
+                    endpoint: "api/payments/checkout",
                     method: "POST",
                     body: { parentOrderId: data.order._id },
                 });

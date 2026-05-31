@@ -1,6 +1,6 @@
 import useFetch from "@/hooks/useFetch";
 
-const useDeleteProduct = ({ storeSlug, setProducts }) => {
+const useDeleteProduct = ({ storeId, setProducts }) => {
     const {
         loading,
         error,
@@ -9,7 +9,7 @@ const useDeleteProduct = ({ storeSlug, setProducts }) => {
 
     const deleteProduct = async (productId) => {
         const data = await executeDelete({
-            endpoint: `${storeSlug}/${productId}`,
+            endpoint: `/api/stores/${storeId}/products/${productId}`,
             enabled: true,
             method: "DELETE",
         });

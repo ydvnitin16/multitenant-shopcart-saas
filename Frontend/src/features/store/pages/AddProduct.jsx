@@ -8,9 +8,12 @@ import InlineLoader from '@/components/ui/InlineLoader';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { productSchema } from '../validations/product';
+import useVendorStoreStore from '@/stores/useVendorStoreStore';
 
 const AddProduct = () => {
     const { storeSlug } = useParams();
+    const { stores } = useVendorStoreStore();
+    const currentStore = stores.find((store) => store.slug === storeSlug);
 
     // yup validations
     const {
@@ -24,7 +27,7 @@ const AddProduct = () => {
 
     // Hook to handle everything about add prodcut
     const { loading, error, onSubmit, images, handleImageChange } =
-        useAddProduct({ storeSlug, reset });
+        useAddProduct({ storeId: currentStore?._id, reset });
 
     return (
         <div className="min-h-screen px-2 md:px-5 py-12">

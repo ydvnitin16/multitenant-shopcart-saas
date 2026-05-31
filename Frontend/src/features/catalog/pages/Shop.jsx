@@ -1,22 +1,24 @@
 import React, { useState } from "react";
 import ProductCard from "../components/ProductCard";
-import { productsData } from "../data/productsData";
 import { useProducts } from "../hooks/useProducts";
 import Pagination from "@/components/ui/Pagination";
 import InlineLoader from "@/components/ui/InlineLoader";
+import { PRODUCT_CATEGORIES } from "../data/categoriesData";
 
 const Shop = () => {
     const [page, setPage] = useState(1);
+    const [category, setCategory] = useState("");
     const [sort, setSort] = useState({
         sortBy: "createdAt",
         order: "desc",
     });
 
-    const { loading, products, pagination, error } = useProducts({
+    const { loading, products, categories, pagination, error } = useProducts({
         page: page,
         limit: 10,
         sortBy: sort.sortBy,
         order: sort.order,
+        category,
     });
 
     return (
@@ -31,11 +33,20 @@ const Shop = () => {
                                 Category
                             </h3>
 
-                            <select className='w-full bg-zinc-50 text-sm text-zinc-700 rounded-lg px-3 py-2 outline-none transition focus:bg-white focus:ring-1 focus:ring-zinc-300'>
+                            <select
+                                value={category}
+                                className='w-full bg-zinc-50 text-sm text-zinc-700 rounded-lg px-3 py-2 outline-none transition focus:bg-white focus:ring-1 focus:ring-zinc-300'
+                                onChange={(e) => {
+                                    setCategory(e.target.value);
+                                    setPage(1);
+                                }}
+                            >
                                 <option value=''>All</option>
-                                <option value='electronics'>Electronics</option>
-                                <option value='fashion'>Fashion</option>
-                                <option value='accessories'>Accessories</option>
+                                {PRODUCT_CATEGORIES.map((item) => (
+                                    <option key={item} value={item}>
+                                        {item}
+                                    </option>
+                                ))}
                             </select>
                         </div>
 
@@ -86,7 +97,14 @@ const Shop = () => {
                 <div className='flex-1'>
                     {/* Header */}
                     <div className='flex justify-between items-center mb-6'>
-                        <h2 className='text-2xl font-semibold'>All Products</h2>
+                        <div>
+                            <h2 className='text-2xl font-semibold'>
+                                {category || "All Products"}
+                            </h2>
+                            <p className='mt-1 text-sm text-zinc-500'>
+                                {pagination.total || 0} products found
+                            </p>
+                        </div>
                     </div>
 
                     {loading ? (

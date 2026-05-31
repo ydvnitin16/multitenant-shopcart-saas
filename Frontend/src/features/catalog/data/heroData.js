@@ -5,7 +5,7 @@ export const heroData = [
         "title": "Next-Gen Tech Hub",
         "description": "From precision engineering to ultimate home automation systems.",
         "actionText": "Shop Electronics",
-        "navigateTo": "/products",
+        "navigateTo": "/products?category=electronics",
         "textAlignment": "left"
     },
     {
@@ -14,7 +14,7 @@ export const heroData = [
         "title": "Curated Asthetics",
         "description": "Elevate your daily presence with our handpicked selection of stylish essentials.",
         "actionText": "Explore Fashion",
-        "navigateTo": "/products",
+        "navigateTo": "/products?category=fashion",
         "textAlignment": "right"
     }
 ];

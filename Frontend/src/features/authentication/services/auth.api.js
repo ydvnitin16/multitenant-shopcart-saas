@@ -2,7 +2,7 @@ import { fetchService } from "@/services/fetchService";
 
 export const loginUser = async (data) => {
     return fetchService({
-        endpoint: "auth/login",
+        endpoint: "api/auth/login",
         method: "POST",
         body: data,
     });
@@ -10,7 +10,7 @@ export const loginUser = async (data) => {
 
 export const signupUser = async (data) => {
     return fetchService({
-        endpoint: "auth/register",
+        endpoint: "api/auth/register",
         method: "POST",
         body: data,
     });
@@ -18,7 +18,7 @@ export const signupUser = async (data) => {
 
 export const logoutUser = async () => {
     return fetchService({
-        endpoint: "auth/logout",
+        endpoint: "api/auth/logout",
         method: "DELETE",
     });
 };

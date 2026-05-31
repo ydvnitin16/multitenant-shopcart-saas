@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { addProduct } from '../services/product.api';
 import toast from 'react-hot-toast';
 
-const useAddProduct = ({ storeSlug, reset }) => {
+const useAddProduct = ({ storeId, reset }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [images, setImages] = useState([]);
@@ -34,7 +34,11 @@ const useAddProduct = ({ storeSlug, reset }) => {
                 throw Error('Please add at least one product image');
             }
 
-            const data = await addProduct(storeSlug, formatedData);
+            if (!storeId) {
+                throw Error('Store is not ready yet');
+            }
+
+            const data = await addProduct(storeId, formatedData);
             toast.success(data.message || 'Product added succesfully');
             reset();
             setImages([]);

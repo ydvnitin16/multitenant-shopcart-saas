@@ -1,6 +1,6 @@
 import useFetch from "@/hooks/useFetch";
 
-const useUpdateProduct = ({ storeSlug, setProducts }) => {
+const useUpdateProduct = ({ storeId, setProducts }) => {
     const {
         loading,
         error,
@@ -16,7 +16,7 @@ const useUpdateProduct = ({ storeSlug, setProducts }) => {
         };
 
         const data = await executeUpdate({
-            endpoint: `${storeSlug}/${productId}/update`,
+            endpoint: `/api/stores/${storeId}/products/${productId}/update`,
             enabled: true,
             method: "PUT",
             body: normalizedPayload,
