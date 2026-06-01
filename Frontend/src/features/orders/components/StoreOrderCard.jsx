@@ -14,7 +14,8 @@ const StoreOrderCard = ({
     const canCancel =
         !paymentPending &&
         storeOrder.status !== "DELIVERED" &&
-        storeOrder.status !== "CANCELLED";
+        storeOrder.status !== "CANCELLED" &&
+        parentOrder?.paymentMethod !== "CARD";
 
     return (
         <div className='px-6 py-5 space-y-4 border-zinc-100'>

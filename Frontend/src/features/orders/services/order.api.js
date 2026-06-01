@@ -2,7 +2,7 @@ import { fetchService } from "@/services/fetchService";
 
 export const cancelStoreOrder = async (storeOrderId) => {
     return fetchService({
-        endpoint: `orders/store-order/${storeOrderId}/cancel`,
+        endpoint: `api/orders/${storeOrderId}/cancel`,
         method: "PATCH",
     });
 };

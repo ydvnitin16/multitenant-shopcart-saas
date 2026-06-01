@@ -79,34 +79,40 @@ export const createPaymentCheckoutSession = async (req, res) => {
     let session;
 
     try {
-        session = await stripe.checkout.sessions.create({
-            payment_method_types: ["card"],
-            mode: "payment",
-            line_items: [
-                {
-                    price_data: {
-                        currency: "inr",
-                        product_data: {
-                            name: "Order Payment",
+        session = await stripe.checkout.sessions.create(
+            {
+                payment_method_types: ["card"],
+                mode: "payment",
+                line_items: [
+                    {
+                        price_data: {
+                            currency: "inr",
+                            product_data: {
+                                name: "Order Payment",
+                            },
+                            unit_amount: order.totalAmount * 100,
                         },
-                        unit_amount: order.totalAmount * 100,
+                        quantity: 1,
                     },
-                    quantity: 1,
-                },
-            ],
+                ],
 
-            success_url: `${process.env.CLIENT_URL}/orders?checkout=success&session_id={CHECKOUT_SESSION_ID}&parentOrderId=${order._id}`,
-            cancel_url: `${process.env.CLIENT_URL}/orders?checkout=cancelled&session_id={CHECKOUT_SESSION_ID}&parentOrderId=${order._id}`,
+                success_url: `${process.env.CLIENT_URL}/orders?checkout=success&session_id={CHECKOUT_SESSION_ID}&parentOrderId=${order._id}`,
+                cancel_url: `${process.env.CLIENT_URL}/orders?checkout=cancelled&session_id={CHECKOUT_SESSION_ID}&parentOrderId=${order._id}`,
 
-            metadata: {
-                parentOrderId: order._id.toString(),
-            },
-            payment_intent_data: {
                 metadata: {
                     parentOrderId: order._id.toString(),
                 },
+                payment_intent_data: {
+                    metadata: {
+                        parentOrderId: order._id.toString(),
+                    },
+                },
+                expires_at: Math.floor(Date.now() / 1000) + 30 * 60, // 30 minutes
             },
-        });
+            {
+                idempotencyKey: `checkout-${order._id.toString()}`, // stripe should not charge 2 times for single order
+            },
+        );
     } catch (error) {
         await updateParentOrderPaymentStatus({
             parentOrderId: order._id,
@@ -215,11 +221,13 @@ export const stripeWebhookHandler = async (req, res) => {
 
                 if (session.mode === "payment") {
                     const parentOrderId = session.metadata?.parentOrderId;
+                    const stripePaymentIntentId = session.payment_intent.id;
 
                     if (parentOrderId) {
                         await updateParentOrderPaymentStatus({
                             parentOrderId,
                             paymentStatus: "CANCELLED",
+                            stripePaymentIntentId,
                         });
                     }
                 }

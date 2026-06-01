@@ -505,10 +505,7 @@ export const updateParentOrderPaymentStatus = async ({
 
     const currentPaymentStatus = getEffectivePaymentStatus(parentOrder);
 
-    if (
-        currentPaymentStatus === "CANCELLED" ||
-        currentPaymentStatus === "FAILED"
-    ) {
+    if (TERMINAL_UNPAID_PAYMENT_STATUSES.includes(currentPaymentStatus)) {
         return parentOrder;
     }
 
@@ -520,20 +517,7 @@ export const updateParentOrderPaymentStatus = async ({
         parentOrder.stripePaymentIntentId = stripePaymentIntentId;
     }
 
-    if (
-        currentPaymentStatus === "PAID" && // if already paid dont move further return here
-        paymentStatus !== "PAID"
-    ) {
-        await parentOrder.save();
-        return parentOrder;
-    }
-
-    if (
-        currentPaymentStatus === paymentStatus &&
-        TERMINAL_UNPAID_PAYMENT_STATUSES.includes(paymentStatus)
-    ) {
-        parentOrder.paymentStatus = paymentStatus;
-        parentOrder.isPaid = false;
+    if (currentPaymentStatus === "PAID") {
         await parentOrder.save();
         return parentOrder;
     }
