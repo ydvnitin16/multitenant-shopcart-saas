@@ -132,6 +132,48 @@ export const createPaymentCheckoutSession = async (req, res) => {
     });
 };
 
+export const cancelSubscription = async (req, res) => {
+    const store = req.store;
+    const userId = req.user.id;
+
+    const currentSubscription = await Subscription.findOne({
+        store: store._id,
+        status: "ACTIVE",
+    }).sort({ createdAt: -1 });
+
+    if (
+        !currentSubscription ||
+        !["STARTER", "PRO"].includes(currentSubscription.plan)
+    ) {
+        throw new ApiError(404, "No Active subscription found");
+    }
+
+    if (currentSubscription.cancelAtPeriodEnd)
+        throw new ApiError(
+            400,
+            "Subscription is already scheduled for cancellation.",
+        );
+
+    try {
+        await stripe.subscriptions.update(
+            currentSubscription.stripeSubscriptionId,
+            { cancel_at_period_end: true },
+        );
+
+        currentSubscription.cancelAtPeriodEnd = true;
+        await currentSubscription.save();
+
+        ApiSuccess(
+            res,
+            200,
+            "Subscription will be cancelled at the end of the billing period.",
+        );
+    } catch (err) {
+        console.log(err.message);
+        throw new ApiError(500, "Failed to cancel your active subscription");
+    }
+};
+
 export const stripeWebhookHandler = async (req, res) => {
     const sig = req.headers["stripe-signature"];
     let event;
@@ -148,37 +190,39 @@ export const stripeWebhookHandler = async (req, res) => {
 
     try {
         switch (event.type) {
-            case "checkout.session.completed": {
-                const session = event.data.object;
-
-                if (session.mode === "subscription") {
-                    const storeId = session.metadata?.storeId;
-
-                    if (!storeId || !session.subscription) {
-                        return;
-                    }
-
-                    const subscription = await stripe.subscriptions.retrieve(
-                        session.subscription,
-                    );
-                    await syncStoreSubscription(subscription);
-                }
-
-                break;
-            }
             case "customer.subscription.updated":
             case "customer.subscription.deleted": {
                 const subscription = event.data.object;
-                await syncStoreSubscription(subscription);
+                let invoiceId = null;
+                let amountPaid = 0;
+
+                if (subscription.latest_invoice) {
+                    const invoice = await stripe.invoices.retrieve(
+                        typeof subscription.latest_invoice === "string"
+                            ? subscription.latest_invoice
+                            : subscription.latest_invoice.id,
+                    );
+                    invoiceId = invoice.id;
+                    amountPaid = invoice.amount_paid;
+                }
+
+                await syncStoreSubscription(subscription, {
+                    stripeInvoiceId: invoiceId,
+                    amountPaid: amountPaid,
+                });
                 break;
             }
             case "invoice.payment_succeeded": {
                 const invoice = event.data.object;
 
-                if (invoice.subscription) {
-                    const subscription = await stripe.subscriptions.retrieve(
-                        invoice.subscription,
-                    );
+                const subscriptionId =
+                    invoice.subscription ||
+                    invoice.parent.subscription_details.subscription;
+
+                if (subscriptionId) {
+                    const subscription =
+                        await stripe.subscriptions.retrieve(subscriptionId);
+
                     await syncStoreSubscription(subscription, {
                         stripeInvoiceId: invoice.id,
                         amountPaid: invoice.amount_paid,
@@ -190,10 +234,13 @@ export const stripeWebhookHandler = async (req, res) => {
             case "invoice.payment_failed": {
                 const invoice = event.data.object;
 
-                if (invoice.subscription) {
-                    const subscription = await stripe.subscriptions.retrieve(
-                        invoice.subscription,
-                    );
+                const subscriptionId =
+                    invoice.subscription ||
+                    invoice.parent.subscription_details.subscription;
+
+                if (subscriptionId) {
+                    const subscription =
+                        await stripe.subscriptions.retrieve(subscriptionId);
                     await syncStoreSubscription(subscription, {
                         stripeInvoiceId: invoice.id,
                         amountPaid: invoice.amount_paid,
@@ -221,7 +268,10 @@ export const stripeWebhookHandler = async (req, res) => {
 
                 if (session.mode === "payment") {
                     const parentOrderId = session.metadata?.parentOrderId;
-                    const stripePaymentIntentId = session.payment_intent.id;
+                    const stripePaymentIntentId =
+                        typeof session.payment_intent === "string"
+                            ? session.payment_intent
+                            : (session.payment_intent?.id ?? null);
 
                     if (parentOrderId) {
                         await updateParentOrderPaymentStatus({
@@ -278,6 +328,16 @@ export const createSubscriptionCheckoutSession = async (req, res) => {
         throw new ApiError(404, "Store not found");
     }
 
+    if (store.subscriptionPlan === plan)
+        throw new ApiError(400, "You already have that plan");
+
+    if (store.subscriptionPlan === "PRO" && plan === "STARTER") {
+        throw new ApiError(
+            400,
+            "Your current plan is already active, you cannot degrade your plan",
+        );
+    }
+
     if (!store?.stripeCustomerId) {
         const customer = await stripe.customers.create({
             name: store.name,
@@ -296,8 +356,8 @@ export const createSubscriptionCheckoutSession = async (req, res) => {
                 quantity: 1,
             },
         ],
-        success_url: `${process.env.CLIENT_URL}/store/${store.slug}/dashboard?subscription=success`,
-        cancel_url: `${process.env.CLIENT_URL}/store/${store.slug}/dashboard?subscription=cancelled`,
+        success_url: `${process.env.CLIENT_URL}/store/${store.slug}/dashboard`,
+        cancel_url: `${process.env.CLIENT_URL}/store/${store.slug}/dashboard`,
         metadata: {
             storeId: store._id.toString(),
             plan,
@@ -312,6 +372,73 @@ export const createSubscriptionCheckoutSession = async (req, res) => {
     ApiSuccess(res, 200, "Subscription checkout session created", {
         url: session.url,
     });
+};
+
+export const upgradeSubscription = async (req, res) => {
+    const store = req.store;
+    const { plan } = req.body;
+
+    if (plan !== "PRO")
+        throw new ApiError(400, "Only upgrading to PRO is supported.");
+
+    if (store.subscriptionPlan === "PRO")
+        throw new ApiError(400, "You are already on the PRO plan.");
+
+    if (store.subscriptionPlan === "FREE")
+        throw new ApiError(
+            400,
+            "You don't have an active subscription. Please subscribe first.",
+        );
+
+    const selectedPriceId = subscriptionPriceIds[plan];
+    if (!selectedPriceId)
+        throw new ApiError(500, "Stripe price not configured.");
+
+    const currentSubscription = await Subscription.findOne({
+        store: store._id,
+        status: "ACTIVE",
+    }).sort({ createdAt: -1 });
+
+    if (!currentSubscription?.stripeSubscriptionId)
+        throw new ApiError(404, "No active Stripe subscription found.");
+
+    const stripeSubscription = await stripe.subscriptions.retrieve(
+        currentSubscription.stripeSubscriptionId,
+    );
+
+    const currentItemId = stripeSubscription.items.data[0]?.id;
+    if (!currentItemId)
+        throw new ApiError(500, "Could not find subscription item to upgrade.");
+
+    try {
+        await stripe.subscriptions.update(
+            currentSubscription.stripeSubscriptionId,
+            {
+                items: [{ id: currentItemId, price: selectedPriceId }],
+                proration_behavior: "create_prorations",
+                payment_behavior: "error_if_incomplete",
+                metadata: { storeId: store._id.toString(), plan },
+                cancel_at_period_end: false,
+            },
+        );
+
+        if (currentSubscription.cancelAtPeriodEnd) {
+            currentSubscription.cancelAtPeriodEnd = false;
+            await currentSubscription.save();
+        }
+
+        ApiSuccess(
+            res,
+            200,
+            "Plan upgraded successfully. Your card has been charged the prorated amount.",
+        );
+    } catch (err) {
+        console.error("Stripe upgrade error:", err.message);
+        throw new ApiError(
+            500,
+            "Failed to upgrade your subscription. Please try again.",
+        );
+    }
 };
 
 const syncStoreSubscription = async (
@@ -348,10 +475,14 @@ export const getStoreSubscription = async (req, res) => {
         createdAt: -1,
     });
 
+    const isExpired =
+        store.subscriptionExpiresAt &&
+        new Date(store.subscriptionExpiresAt).getTime() < Date.now();
+
     ApiSuccess(res, 200, "Subscription retrieved successfully", {
         subscription: {
             plan: store.subscriptionPlan,
-            status: store.subscriptionStatus,
+            status: isExpired ? "EXPIRED" : "ACTIVE",
             expiresAt: store.subscriptionExpiresAt,
             stripeCustomerId: store.stripeCustomerId,
             record: subscription,
@@ -369,26 +500,29 @@ const updateStoreSubscription = async ({
     periodStart,
     periodEnd,
 }) => {
+    if (!stripeInvoiceId && status === "ACTIVE") return;
+
+    const periodStartDate = periodStart ? new Date(periodStart * 1000) : null;
+    const periodEndDate = periodEnd ? new Date(periodEnd * 1000) : null;
+
+    const updateFields = {
+        plan,
+        status,
+        currentPeriodStart: periodStartDate,
+        currentPeriodEnd: periodEndDate,
+        ...(stripeInvoiceId ? { stripeInvoiceId } : {}),
+        ...(amountPaid > 0 ? { amountPaid: amountPaid / 100 } : {}),
+    };
+
     await Subscription.findOneAndUpdate(
-        { store: storeId },
-        {
-            store: storeId,
-            plan,
-            status,
-            stripeSubscriptionId,
-            stripeInvoiceId,
-            ...(amountPaid > 0 ? { amountPaid: amountPaid / 100 } : {}),
-            currentPeriodStart: periodStart
-                ? new Date(periodStart * 1000)
-                : null,
-            currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
-        },
-        { upsert: true, new: true, setDefaultsOnInsert: true },
+        { store: storeId, stripeSubscriptionId },
+        { $set: updateFields },
+        { new: true },
     );
 
     await Store.findByIdAndUpdate(storeId, {
         subscriptionPlan: status === "ACTIVE" ? plan : "FREE",
-        subscriptionStatus: status,
-        subscriptionExpiresAt: periodEnd ? new Date(periodEnd * 1000) : null,
+        subscriptionExpiresAt:
+            status === "ACTIVE" && periodEndDate ? periodEndDate : null,
     });
 };

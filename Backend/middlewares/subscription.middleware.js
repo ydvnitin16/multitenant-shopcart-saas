@@ -1,3 +1,5 @@
+import Product from "../models/product.js";
+import ApiError from "../utils/apiError.js";
 import Store from "./../models/store.js";
 
 export const PLAN_LIMITS = {
@@ -34,9 +36,9 @@ export const isStorePlanActive = async (store) => {
         new Date(store.subscriptionExpiresAt).getTime() < Date.now();
 
     if (isExpired) {
-        if (isExpired && store.subscriptionStatus !== "EXPIRED") {
+        if (isExpired && store.subscriptionPlan !== "FREE") {
             await Store.findByIdAndUpdate(store._id, {
-                subscriptionStatus: "EXPIRED",
+                subscriptionPlan: "FREE",
             });
         }
     }
@@ -45,13 +47,13 @@ export const isStorePlanActive = async (store) => {
 
 export const enforceProductLimit = async (req, res, next) => {
     const store = req.store;
-    const isStorePlanActive = isStorePlanActive(store);
+    const isPlanActive = await isStorePlanActive(store);
 
     const productCount = await Product.countDocuments({
         store: store._id,
     });
 
-    if (!isStorePlanActive) {
+    if (!isPlanActive) {
         req.planLimits = PLAN_LIMITS["FREE"];
     }
 

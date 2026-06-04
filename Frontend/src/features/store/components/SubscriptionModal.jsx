@@ -1,3 +1,4 @@
+import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import InlineLoader from "@/components/ui/InlineLoader";
 import { Check, X } from "lucide-react";
@@ -23,6 +24,8 @@ const SubscriptionModal = ({
     onChoosePlan,
     loadingPlan,
     currentPlan = "FREE",
+    cancelSubscription,
+    upgradeCurrentSubscription,
 }) => {
     if (!isOpen) return null;
 
@@ -75,9 +78,10 @@ const SubscriptionModal = ({
                                     </div>
 
                                     {isCurrentPlan && (
-                                        <span className='rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700'>
-                                            Current
-                                        </span>
+                                        <Badge
+                                            variant='green'
+                                            content={"Current"}
+                                        />
                                     )}
                                 </div>
 
@@ -99,19 +103,55 @@ const SubscriptionModal = ({
                                         </div>
                                     ))}
                                 </div>
-
-                                <Button
-                                    type='button'
-                                    className='mt-6 w-full'
-                                    disabled={isLoading}
-                                    onClick={() => onChoosePlan(plan.name)}
-                                >
-                                    {isLoading ? (
-                                        <InlineLoader content='Opening checkout...' />
-                                    ) : (
-                                        `Choose ${plan.name}`
+                                {(currentPlan === plan.name && (
+                                    <>
+                                        <Button
+                                            type='button'
+                                            className='mt-6 w-full'
+                                            disabled={isLoading}
+                                            onClick={cancelSubscription}
+                                        >
+                                            Cancel
+                                        </Button>
+                                        <p className='text-sm italic text-center text-zinc-600 p-1'>
+                                            Cancel upcoming subscription.
+                                        </p>
+                                    </>
+                                )) ||
+                                    (currentPlan === "STARTER" &&
+                                        plan.name === "PRO" && (
+                                            <>
+                                                <Button
+                                                    type='button'
+                                                    className='mt-6 w-full'
+                                                    disabled={isLoading}
+                                                    onClick={
+                                                        upgradeCurrentSubscription
+                                                    }
+                                                >
+                                                    Upgrade to PRO
+                                                </Button>
+                                                <p className='text-sm italic text-center text-zinc-600 p-1'>
+                                                    Upgrade your current plan to
+                                                    PRO.
+                                                </p>
+                                            </>
+                                        )) || (
+                                        <Button
+                                            type='button'
+                                            className='mt-6 w-full'
+                                            disabled={isLoading}
+                                            onClick={() =>
+                                                onChoosePlan(plan.name)
+                                            }
+                                        >
+                                            {isLoading ? (
+                                                <InlineLoader content='Opening checkout...' />
+                                            ) : (
+                                                `Choose ${plan.name}`
+                                            )}
+                                        </Button>
                                     )}
-                                </Button>
                             </div>
                         );
                     })}

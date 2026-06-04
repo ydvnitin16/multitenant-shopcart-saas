@@ -23,7 +23,11 @@ import {
 import Loader from "@/components/ui/Loader";
 import useVendorStoreStore from "@/stores/useVendorStoreStore";
 import Badge from "@/components/ui/Badge";
-import { subscriptionBillingCheckout } from "../services/subscription.api";
+import {
+    cancelSubscription,
+    subscriptionBillingCheckout,
+    upgradeCurrentSubscription,
+} from "../services/subscription.api";
 import SubscriptionModal from "../components/SubscriptionModal";
 import toast from "react-hot-toast";
 
@@ -113,6 +117,27 @@ const StoreDashboard = () => {
         }
     };
 
+    const handleCancelSubscription = async () => {
+        try {
+            const data = await cancelSubscription(displayStore._id);
+            toast.success(data.message);
+        } catch (err) {
+            toast.error(err.message || "Unable to cancel subscription");
+        }
+    };
+
+    const handleUpgradeCurrentSubscription = async () => {
+        try {
+            const data = await upgradeCurrentSubscription(
+                displayStore._id,
+                "PRO",
+            );
+            toast.success(data.message || "Upgraded to PRO");
+        } catch (err) {
+            toast.error(err.message || "Failed to process");
+        }
+    };
+
     return (
         <>
             <PageShell
@@ -127,7 +152,8 @@ const StoreDashboard = () => {
                             <Badge
                                 content={`${displayStore?.subscriptionPlan || "FREE"} plan`}
                                 variant={
-                                    displayStore?.subscriptionStatus === "ACTIVE"
+                                    displayStore?.subscriptionStatus ===
+                                    "ACTIVE"
                                         ? "green"
                                         : "yellow"
                                 }
@@ -274,6 +300,8 @@ const StoreDashboard = () => {
                 onChoosePlan={handlePlanCheckout}
                 loadingPlan={loadingPlan}
                 currentPlan={displayStore?.subscriptionPlan}
+                cancelSubscription={handleCancelSubscription}
+                upgradeCurrentSubscription={handleUpgradeCurrentSubscription}
             />
         </>
     );

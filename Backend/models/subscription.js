@@ -11,7 +11,7 @@ const subscriptionSchema = new mongoose.Schema(
             type: String,
             enum: ["FREE", "STARTER", "PRO"],
             required: true,
-            default: 'FREE'
+            default: "FREE",
         },
         status: {
             type: String,
@@ -39,6 +39,10 @@ const subscriptionSchema = new mongoose.Schema(
         currentPeriodEnd: {
             type: Date,
             default: null,
+        },
+        cancelAtPeriodEnd: {
+            type: Boolean,
+            default: false,
         },
     },
     { timestamps: true },

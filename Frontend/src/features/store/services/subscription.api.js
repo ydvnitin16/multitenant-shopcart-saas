@@ -10,7 +10,22 @@ export const subscriptionBillingCheckout = async (storeId, plan) => {
 
 export const fetchStoreSubscription = async (storeId) => {
     return fetchService({
-        endpoint: `/api/subscriptions/stores/${storeId}/current`,
+        endpoint: `/api/subscriptions/stores/${storeId}`,
         method: "GET",
+    });
+};
+
+export const cancelSubscription = async (storeId) => {
+    return fetchService({
+        endpoint: `/api/subscriptions/stores/${storeId}/cancel`,
+        method: "PATCH",
+    });
+};
+
+export const upgradeCurrentSubscription = async (storeId, plan) => {
+    return fetchService({
+        endpoint: `/api/subscriptions/stores/${storeId}/upgrade`,
+        method: "PATCH",
+        body: { plan },
     });
 };

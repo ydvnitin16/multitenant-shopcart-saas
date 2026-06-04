@@ -32,11 +32,6 @@ const storeSchema = new mongoose.Schema(
             enum: ["FREE", "STARTER", "PRO"],
             default: "FREE",
         },
-        subscriptionStatus: {
-            type: String,
-            enum: ["ACTIVE", "EXPIRED", "CANCELLED"],
-            default: "EXPIRED",
-        },
         subscriptionExpiresAt: {
             type: Date,
             default: null,
