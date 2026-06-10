@@ -5,15 +5,14 @@ import {
     Package,
     ShoppingCart,
     IndianRupee,
-    Clock,
     Users,
     CreditCard,
 } from "lucide-react";
-import useAdminStats from "../hooks/useAdminStats";
 import StatsCard from "@/components/ui/StatsCard";
 import Loader from "@/components/ui/Loader";
 import Button from "@/components/ui/Button";
 import InlineLoader from "@/components/ui/InlineLoader";
+import useFetch from "@/hooks/useFetch";
 import {
     Line,
     LineChart,
@@ -76,7 +75,8 @@ const statCards = (stats) => [
 ];
 
 export default function AdminDashboard() {
-    const { stats, loading, error, reFetch } = useAdminStats();
+    const { data, loading, error, reFetch } = useFetch("/admin/stats");
+    const stats = data?.stats;
 
     if (loading) {
         return <Loader />;

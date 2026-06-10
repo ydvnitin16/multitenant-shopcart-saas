@@ -1,28 +1,34 @@
-import useFetch from "@/hooks/useFetch";
+import { useState } from "react";
+import { deleteStoreProduct } from "../services/product.api";
 
 const useDeleteProduct = ({ storeId, setProducts }) => {
-    const {
-        loading,
-        error,
-        execute: executeDelete,
-    } = useFetch(null, {}, { enabled: false });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const deleteProduct = async (productId) => {
-        const data = await executeDelete({
-            endpoint: `/stores/${storeId}/products/${productId}`,
-            enabled: true,
-            method: "DELETE",
-        });
+        try {
+            setLoading(true);
+            setError(null);
 
-        setProducts((prev) => prev.filter((item) => item._id !== productId));
+            const data = await deleteStoreProduct({ storeId, productId });
 
-        return data;
+            setProducts((prev) =>
+                prev.filter((item) => item._id !== productId),
+            );
+
+            return data;
+        } catch (err) {
+            setError(err.message || "Something went wrong");
+            throw err;
+        } finally {
+            setLoading(false);
+        }
     };
 
     return {
         deleteProduct,
         loading,
-        error: error?.message || null,
+        error,
     };
 };
 

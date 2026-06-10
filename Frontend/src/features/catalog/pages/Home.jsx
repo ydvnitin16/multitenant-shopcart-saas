@@ -5,30 +5,21 @@ import ProductCard from "../components/ProductCard";
 import SectionWrapper from "../components/SectionWrapper";
 import CategoriesMarquee from "../components/CategoriesMarquee";
 import { categoriesData } from "../data/categoriesData";
-import { useProducts } from "../hooks/useProducts";
 import InlineLoader from "@/components/ui/InlineLoader";
+import useFetch from "@/hooks/useFetch";
 
 const Home = () => {
     const {
+        data: bestSellingData,
         loading: bestSellingProductsLoading,
-        products: bestSellingProducts,
-        error: bestSellingProductsError,
-    } = useProducts({
-        page: 1,
-        limit: 10,
-        sortBy: "sold",
-        order: "desc",
-    });
+    } = useFetch("/products?page=1&limit=10&sortBy=sold&order=desc");
     const {
+        data: newArrivalsData,
         loading: newArrivalsProductsLoading,
-        products: newArrivalsProducts,
-        error: newArrivalsProductsError,
-    } = useProducts({
-        page: 1,
-        limit: 10,
-        sortBy: "createdAt",
-        order: "asc",
-    });
+    } = useFetch("/products?page=1&limit=10&sortBy=createdAt&order=asc");
+
+    const bestSellingProducts = bestSellingData?.products || [];
+    const newArrivalsProducts = newArrivalsData?.products || [];
 
     return (
         <>

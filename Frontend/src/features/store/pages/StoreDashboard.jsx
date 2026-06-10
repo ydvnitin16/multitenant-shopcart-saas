@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { formatPrice } from "@/utils/formatPrice";
 import {
     AlertTriangle,
@@ -7,8 +7,7 @@ import {
     ShoppingCart,
     Users,
 } from "lucide-react";
-import { Link, useParams, useSearchParams } from "react-router-dom";
-import useStoreDashboard from "../hooks/useStoreDashboard";
+import { Link, useParams } from "react-router-dom";
 import StatsCard from "@/components/ui/StatsCard";
 import PageShell from "@/components/layout/PageShell";
 import Button from "@/components/ui/Button";
@@ -30,6 +29,7 @@ import {
 } from "../services/subscription.api";
 import SubscriptionModal from "../components/SubscriptionModal";
 import toast from "react-hot-toast";
+import useFetch from "@/hooks/useFetch";
 
 const statCards = (stats) => [
     {
@@ -68,15 +68,19 @@ const statCards = (stats) => [
 
 const StoreDashboard = () => {
     const { storeSlug } = useParams();
-    const [searchParams] = useSearchParams();
     const { stores } = useVendorStoreStore();
     const currentStore = stores.find((s) => s.slug == storeSlug);
     const [isSubscriptionModalOpen, setIsSubscriptionModalOpen] =
         useState(false);
     const [loadingPlan, setLoadingPlan] = useState(null);
 
-    const { dashboard, loading, error, refetch } = useStoreDashboard(
-        currentStore?._id,
+    const {
+        data: dashboard,
+        loading,
+        error,
+        reFetch: refetch,
+    } = useFetch(
+        currentStore?._id ? `/stores/${currentStore._id}/stats` : null,
     );
 
     if (loading) {
@@ -90,7 +94,9 @@ const StoreDashboard = () => {
                     <h1 className='text-2xl font-semibold text-zinc-900'>
                         Dashboard unavailable
                     </h1>
-                    <p className='mt-2 text-sm text-zinc-500'>{error}</p>
+                    <p className='mt-2 text-sm text-zinc-500'>
+                        {error.message}
+                    </p>
                 </div>
             </div>
         );

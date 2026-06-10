@@ -1,11 +1,9 @@
-import useFetch from "@/hooks/useFetch";
+import { useState } from "react";
+import { updateStoreProduct } from "../services/product.api";
 
 const useUpdateProduct = ({ storeId, setProducts }) => {
-    const {
-        loading,
-        error,
-        execute: executeUpdate,
-    } = useFetch(null, {}, { enabled: false });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const updateProduct = async (productId, payload) => {
         const normalizedPayload = {
@@ -15,33 +13,42 @@ const useUpdateProduct = ({ storeId, setProducts }) => {
             stock: Number(payload.stock),
         };
 
-        const data = await executeUpdate({
-            endpoint: `/stores/${storeId}/products/${productId}/update`,
-            enabled: true,
-            method: "PUT",
-            body: normalizedPayload,
-        });
+        try {
+            setLoading(true);
+            setError(null);
 
-        if (data?.product) {
-            setProducts((prev) =>
-                prev.map((item) =>
-                    item._id === productId
-                        ? {
-                              ...item,
-                              ...data.product,
-                          }
-                        : item,
-                ),
-            );
+            const data = await updateStoreProduct({
+                storeId,
+                productId,
+                data: normalizedPayload,
+            });
+
+            if (data?.product) {
+                setProducts((prev) =>
+                    prev.map((item) =>
+                        item._id === productId
+                            ? {
+                                  ...item,
+                                  ...data.product,
+                              }
+                            : item,
+                    ),
+                );
+            }
+
+            return data;
+        } catch (err) {
+            setError(err.message || "Something went wrong");
+            throw err;
+        } finally {
+            setLoading(false);
         }
-
-        return data;
     };
 
     return {
         updateProduct,
         loading,
-        error: error?.message || null,
+        error,
     };
 };
 

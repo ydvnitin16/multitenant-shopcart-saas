@@ -8,13 +8,6 @@ export const subscriptionBillingCheckout = async (storeId, plan) => {
     });
 };
 
-export const fetchStoreSubscription = async (storeId) => {
-    return fetchService({
-        endpoint: `/subscriptions/stores/${storeId}`,
-        method: "GET",
-    });
-};
-
 export const cancelSubscription = async (storeId) => {
     return fetchService({
         endpoint: `/subscriptions/stores/${storeId}/cancel`,

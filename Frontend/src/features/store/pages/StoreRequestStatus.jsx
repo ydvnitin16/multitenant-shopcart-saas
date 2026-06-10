@@ -1,11 +1,12 @@
 import { Megaphone } from "lucide-react";
 import StoreStatusCard from "../components/StoreStatusCard";
-import { useStores } from "../hooks/useStores";
 import Button from "@/components/ui/Button";
 import { Link } from "react-router-dom";
+import useFetch from "@/hooks/useFetch";
 
 const StoreRequestStatus = () => {
-    const { stores: requests, loading, error } = useStores({ status: "ALL" });
+    const { data, loading, error } = useFetch("/stores");
+    const requests = data?.stores || [];
 
     if (loading)
         return (
@@ -35,7 +36,10 @@ const StoreRequestStatus = () => {
                 </div>
                 {requests.length > 0 ? (
                     requests?.map((request) => (
-                        <StoreStatusCard request={request} />
+                        <StoreStatusCard
+                            key={request._id}
+                            request={request}
+                        />
                     ))
                 ) : (
                     <Link to={"/request-store"}>

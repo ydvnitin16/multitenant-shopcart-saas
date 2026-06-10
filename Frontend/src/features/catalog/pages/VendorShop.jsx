@@ -1,30 +1,43 @@
 import { useParams } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
-import { useProducts } from "../hooks/useProducts";
 import useFetch from "@/hooks/useFetch";
 import InlineLoader from "@/components/ui/InlineLoader";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 const VendorShop = () => {
     const { storeSlug } = useParams();
     const [category, setCategory] = useState("");
     const { data, loading, error } = useFetch(
         storeSlug ? `/stores/${storeSlug}` : null,
-        {},
-        { enabled: Boolean(storeSlug) },
     );
     const store = data?.store;
+    const storeId = store?._id;
+
+    const productsEndpoint = useMemo(() => {
+        if (!storeId) {
+            return null;
+        }
+
+        const params = new URLSearchParams({
+            limit: "50",
+            store: storeId,
+        });
+
+        if (category) {
+            params.set("category", category);
+        }
+
+        return `/products?${params.toString()}`;
+    }, [category, storeId]);
+
     const {
-        products,
-        categories,
+        data: productsData,
         loading: productsLoading,
         error: productsError,
-    } = useProducts({
-        store: store?._id,
-        limit: 50,
-        category,
-    });
-    const errorMessage = error?.message || productsError;
+    } = useFetch(productsEndpoint);
+    const products = productsData?.products || [];
+    const categories = productsData?.categories || [];
+    const errorMessage = error?.message || productsError?.message;
 
     if (loading || productsLoading) {
         return (

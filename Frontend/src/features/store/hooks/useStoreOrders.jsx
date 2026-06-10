@@ -19,14 +19,10 @@ export const useStoreOrders = ({ storeId, page, limit }) => {
 
     const { data, loading, error, reFetch } = useFetch(
         storeId ? endpoint : null,
-        {},
-        { enabled: Boolean(storeId) },
     );
 
     useEffect(() => {
         if (data?.orders) {
-            
-    console.log(data);
             setOrders(data.orders || []);
             setStats(data.stats || null);
         }

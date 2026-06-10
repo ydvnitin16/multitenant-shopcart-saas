@@ -1,21 +1,32 @@
 import useFetch from "@/hooks/useFetch";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 const useStoreProducts = ({ storeId }) => {
-    const [products, setProducts] = useState([]);
+    const [localProducts, setLocalProducts] = useState(null);
     const { data, loading, error, reFetch } = useFetch(
         storeId ? `/stores/${storeId}/products` : null,
-        {},
-        { enabled: Boolean(storeId) },
     );
 
     const total = useMemo(() => data?.total || 0, [data?.total]);
+    const products = localProducts || data?.products || [];
 
-    useEffect(() => {
-        if (data?.products) {
-            setProducts(data.products);
-        }
-    }, [data?.products]);
+    const setProducts = useCallback(
+        (nextProducts) => {
+            setLocalProducts((prevProducts) => {
+                const currentProducts = prevProducts || data?.products || [];
+                return typeof nextProducts === "function"
+                    ? nextProducts(currentProducts)
+                    : nextProducts;
+            });
+        },
+        [data?.products],
+    );
+
+    const refetch = useCallback(async () => {
+        const result = await reFetch();
+        setLocalProducts(result?.products || []);
+        return result;
+    }, [reFetch]);
 
     return {
         loading,
@@ -23,7 +34,7 @@ const useStoreProducts = ({ storeId }) => {
         products,
         setProducts,
         total,
-        refetch: reFetch,
+        refetch,
     };
 };
 

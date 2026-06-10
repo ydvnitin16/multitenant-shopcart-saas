@@ -7,10 +7,3 @@ export const placeOrder = async (data) => {
         body: data,
     });
 };
-
-export const getOrders = async () => {
-    return fetchService({
-        endpoint: "/orders/my-orders",
-        method: "GET",
-    });
-};

@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import ProductCard from "../components/ProductCard";
-import { useProducts } from "../hooks/useProducts";
 import Pagination from "@/components/ui/Pagination";
 import InlineLoader from "@/components/ui/InlineLoader";
 import { PRODUCT_CATEGORIES } from "../data/categoriesData";
-import { useSearchParams } from "react-router-dom";
+import useFetch from "@/hooks/useFetch";
 
 const Shop = () => {
     const [page, setPage] = useState(1);
@@ -14,13 +13,28 @@ const Shop = () => {
         order: "desc",
     });
 
-    const { loading, products, categories, pagination, error } = useProducts({
-        page: page,
-        limit: 10,
-        sortBy: sort.sortBy,
-        order: sort.order,
-        category,
-    });
+    const params = useMemo(() => {
+        const searchParams = new URLSearchParams({
+            page: String(page),
+            limit: "10",
+            sortBy: sort.sortBy,
+            order: sort.order,
+        });
+
+        if (category) {
+            searchParams.set("category", category);
+        }
+
+        return searchParams.toString();
+    }, [category, page, sort.order, sort.sortBy]);
+
+    const { data, loading } = useFetch(`/products?${params}`);
+    const products = data?.products || [];
+    const pagination = data?.pagination || {
+        page: 1,
+        pages: 1,
+        total: 0,
+    };
 
     return (
         <div className='max-w-7xl mx-auto px-4 py-10 mt-10'>

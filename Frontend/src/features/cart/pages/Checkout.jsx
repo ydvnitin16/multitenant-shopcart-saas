@@ -1,14 +1,14 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import OrderSummary from "../components/OrderSummary";
 import { useCartItems } from "../hooks/useCartItems";
 import AddressSelector from "../components/AddressSelector";
 import AddAddressModal from "../components/AddAddressModal";
-import { useAddresses } from "../hooks/useAddresses";
 import { usePlaceOrder } from "../hooks/usePlaceOrder";
 import useCartStore from "../../../stores/useCartStore";
 import PaymentSelector from "../components/PaymentSelector";
 import OrderPlacing from "../components/OrderPlacing";
 import { useNavigate } from "react-router-dom";
+import useFetch from "@/hooks/useFetch";
 
 const Checkout = () => {
     const { clearCart, cart } = useCartStore();
@@ -20,25 +20,22 @@ const Checkout = () => {
 
     const { cartItems } = useCartItems();
 
-    const { addresses, refetch: refetchAddresses } = useAddresses();
+    const { data: addressesData, reFetch: refetchAddresses } =
+        useFetch("/addresses");
+    const addresses = addressesData?.addresses || [];
 
     const [selectedAddress, setSelectedAddress] = useState(null);
     const [paymentMethod, setPaymentMethod] = useState("COD"); // default
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const selectedAddressId = selectedAddress || addresses[0]?._id || null;
 
     const { loading: placeOrderLoading, handlePlaceOrder } = usePlaceOrder({
         clearCart,
     });
 
-    useEffect(() => {
-        if (addresses?.length && !selectedAddress) {
-            setSelectedAddress(addresses[0]._id);
-        }
-    }, [addresses]);
-
     const onPlaceOrder = () => {
         handlePlaceOrder({
-            addressId: selectedAddress,
+            addressId: selectedAddressId,
             paymentMethod,
             items: cart,
         });
@@ -52,7 +49,7 @@ const Checkout = () => {
                 <div className='lg:col-span-2 space-y-8'>
                     <AddressSelector
                         addresses={addresses}
-                        selected={selectedAddress}
+                        selected={selectedAddressId}
                         setSelected={setSelectedAddress}
                         openModal={() => setIsModalOpen(true)}
                     />

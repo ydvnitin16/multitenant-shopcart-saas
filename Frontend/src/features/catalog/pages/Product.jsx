@@ -1,38 +1,32 @@
 import { Star, Truck, ShieldCheck, MoveRight } from "lucide-react";
 import Button from "@/components/ui/Button";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useProduct } from "../hooks/useProduct";
 import InlineLoader from "@/components/ui/InlineLoader";
 import PhotoMediaGallary from "@/components/ui/ProductMediaGallary";
 import useCartStore from "../../../stores/useCartStore";
 import { formatPrice } from "@/utils/formatPrice";
 import Markdown from "react-markdown";
+import useFetch from "@/hooks/useFetch";
 
 const Product = () => {
     const { productId } = useParams();
     const navigate = useNavigate();
 
-    const { loading, product, error } = useProduct({ productId });
+    const { data, loading, error } = useFetch(
+        productId ? `/products/${productId}` : null,
+    );
+    const product = data?.product || null;
     const [quantity, setQuantity] = useState(1);
 
     const { addToCart, cart } = useCartStore();
-    const [isAlreadyInCart, setIsAlreadyInCart] = useState();
+    const isAlreadyInCart = product
+        ? cart.some((item) => item.productId === product._id)
+        : false;
 
     const handleCart = (productId, quantity) => {
         addToCart(productId, quantity);
     };
-
-    useEffect(() => {
-        if (product) {
-            const isAlreadyInCart = cart.find(
-                (item) => item.productId === product?._id,
-            )
-                ? true
-                : false;
-            setIsAlreadyInCart(isAlreadyInCart);
-        }
-    }, [product, cart]);
 
     if (loading) {
         return (
@@ -43,7 +37,7 @@ const Product = () => {
     }
 
     if (error) {
-        return <p>{error}</p>;
+        return <p>{error.message}</p>;
     }
 
     const discount = product?.mrp

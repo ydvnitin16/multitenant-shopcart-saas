@@ -1,13 +1,24 @@
 import { fetchService } from "@/services/fetchService";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const useFetch = (endpoint, options = {}) => {
+const defaultOptions = {};
+
+const useFetch = (endpoint, options = defaultOptions) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const abortRef = useRef(null);
+    const optionsRef = useRef(options);
+
+    useEffect(() => {
+        optionsRef.current = options;
+    }, [options]);
 
     const execute = useCallback(async () => {
+        if (!endpoint) {
+            return null;
+        }
+
         if (abortRef.current) abortRef.current.abort();
         const controller = new AbortController();
         abortRef.current = controller;
@@ -19,7 +30,7 @@ const useFetch = (endpoint, options = {}) => {
             const result = await fetchService({
                 endpoint,
                 signal: controller.signal,
-                ...options,
+                ...optionsRef.current,
             });
             setData(result);
             return result;
@@ -31,7 +42,7 @@ const useFetch = (endpoint, options = {}) => {
         } finally {
             setLoading(false);
         }
-    }, [endpoint, options]);
+    }, [endpoint]);
 
     useEffect(() => {
         if (!endpoint) {

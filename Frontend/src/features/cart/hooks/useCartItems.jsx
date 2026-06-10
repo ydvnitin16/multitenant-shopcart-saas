@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import useCartStore from "../../../stores/useCartStore";
-import { getProductsByIds } from "../../catalog/services/products";
+import { fetchService } from "@/services/fetchService";
 
 export const useCartItems = () => {
     const cart = useCartStore((state) => state.cart);
@@ -27,8 +27,11 @@ export const useCartItems = () => {
                 setError(null);
 
                 const ids = cart.map((item) => item.productId);
-
-                const data = await getProductsByIds(ids);
+                const formattedIds = ids.join(",");
+                const data = await fetchService({
+                    endpoint: `/products/cart?ids=${formattedIds}`,
+                    method: "GET",
+                });
 
                 // Make the cart id sync with the available products
                 const removeItemsIds = [];
