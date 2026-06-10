@@ -38,25 +38,31 @@ const syncParentOrderPaymentStatus = async (parentOrderId) => {
 
     if (!parentOrder) return;
 
-    if (
-        parentOrder.paymentMethod === "CARD" &&
-        parentOrder.paymentStatus === "PAID"
-    ) {
-        return;
-    }
-
     const activeStoreOrders = await StoreOrder.find({
         parentOrder: parentOrderId,
         status: { $ne: "CANCELLED" },
     })
-        .select("isPaid")
+        .select("isPaid totalAmount")
         .lean();
+
+    const totalAmount = activeStoreOrders.reduce(
+        (sum, order) => sum + order.totalAmount,
+        0,
+    );
 
     if (!activeStoreOrders.length) {
         await ParentOrder.updateOne(
             { _id: parentOrderId },
-            { isPaid: false, paymentStatus: "CANCELLED" },
+            { totalAmount, isPaid: false, paymentStatus: "CANCELLED" },
         );
+        return;
+    }
+
+    if (
+        parentOrder.paymentMethod === "CARD" &&
+        parentOrder.paymentStatus === "PAID"
+    ) {
+        await ParentOrder.updateOne({ _id: parentOrderId }, { totalAmount });
         return;
     }
 
@@ -64,7 +70,7 @@ const syncParentOrderPaymentStatus = async (parentOrderId) => {
 
     await ParentOrder.updateOne(
         { _id: parentOrderId },
-        { isPaid, paymentStatus: isPaid ? "PAID" : "PENDING" },
+        { totalAmount, isPaid, paymentStatus: isPaid ? "PAID" : "PENDING" },
     );
 };
 
@@ -545,6 +551,7 @@ export const updateParentOrderPaymentStatus = async ({
         await releaseParentOrderStock(parentOrderId);
         parentOrder.isPaid = false;
         parentOrder.paymentStatus = paymentStatus;
+        parentOrder.totalAmount = 0;
         await parentOrder.save();
         return parentOrder;
     }
