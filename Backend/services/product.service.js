@@ -4,16 +4,16 @@ import ApiError from "../utils/apiError.js";
 import mongoose from "mongoose";
 
 export const PRODUCT_CATEGORIES = [
-    "Electronics",
-    "Fashion",
-    "Home",
-    "Beauty",
-    "Sports",
-    "Books",
-    "Toys",
-    "Groceries",
-    "Automotive",
-    "Other",
+    "electronics",
+    "fashion",
+    "home",
+    "beauty",
+    "sports",
+    "books",
+    "toys",
+    "groceries",
+    "automotive",
+    "other",
 ];
 
 export const storeProductService = async ({
@@ -26,7 +26,7 @@ export const storeProductService = async ({
     stock,
     store,
 }) => {
-    if (!PRODUCT_CATEGORIES.includes(category)) {
+    if (!PRODUCT_CATEGORIES.includes(category.toLowerCase())) {
         throw new ApiError(400, "Invalid category");
     }
 
@@ -71,7 +71,7 @@ export const updateProductService = async (productId, store, updates) => {
             }
 
             safeUpdates[field] =
-                field === "category" ? updates[field].trim() : updates[field];
+                field === "category" ? updates[field].trim().toLowerCase() : updates[field];
         }
     }
 

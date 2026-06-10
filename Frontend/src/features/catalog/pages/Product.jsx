@@ -47,22 +47,7 @@ const Product = () => {
         <>
             {product && (
                 <div className='min-h-screen bg-zinc-50 pt-8 px-6'>
-                    <div className='max-w-6xl mx-auto space-y-12'>
-                        {/* Breadcrumb */}
-                        <div className='text-sm text-zinc-500'>
-                            <Link to='/' className='hover:text-black'>
-                                Home
-                            </Link>
-                            <span className='mx-2'>/</span>
-                            <Link to='/shop' className='hover:text-black'>
-                                Products
-                            </Link>
-                            <span className='mx-2'>/</span>
-                            <span className='text-zinc-600 font-medium'>
-                                {product.name}
-                            </span>
-                        </div>
-
+                    <div className='max-w-6xl mx-auto space-y-12 pb-10'>
                         <div className='grid lg:grid-cols-2 gap-12 items-start'>
                             <PhotoMediaGallary
                                 title={product.name}
@@ -74,19 +59,6 @@ const Product = () => {
                                 <h1 className='text-2xl font-semibold text-zinc-900'>
                                     {product.name}
                                 </h1>
-
-                                <div className='flex items-center gap-2 text-sm text-zinc-600'>
-                                    <div className='flex text-emerald-500'>
-                                        {[1, 2, 3, 4, 5].map((s) => (
-                                            <Star
-                                                key={s}
-                                                size={16}
-                                                fill='currentColor'
-                                            />
-                                        ))}
-                                    </div>
-                                    <span>4.8 • 120 Reviews</span>
-                                </div>
 
                                 <div className='space-y-1'>
                                     <div className='flex items-center gap-3'>
@@ -116,20 +88,8 @@ const Product = () => {
                                         </p>
                                     )}
                                 </div>
-
-                                <p className='text-lg font-semibold text-zinc-600 leading-relaxed'>
-                                    {product.name}
-                                </p>
-
-                                {isAlreadyInCart ? (
-                                    <Button
-                                        onClick={() => navigate("/cart")}
-                                        size='lg'
-                                        className='flex gap-2'
-                                    >
-                                        Go to Cart <MoveRight />
-                                    </Button>
-                                ) : (
+                                {/* Add to cart & Buy Now */}
+                                {Number(product.stock) > 0 && (
                                     <>
                                         <div>
                                             <p className='text-sm font-medium mb-2'>
@@ -161,29 +121,36 @@ const Product = () => {
                                                 </button>
                                             </div>
                                         </div>
-
-                                        <Button
-                                            disabled={
-                                                Number(product.stock) <= 0
-                                            }
-                                            onClick={() =>
-                                                handleCart(
-                                                    product._id,
-                                                    quantity,
-                                                )
-                                            }
-                                            size='lg'
-                                            variant={
-                                                Number(product.stock) > 0
-                                                    ? "primary"
-                                                    : "ghost"
-                                            }
-                                            className='w-full'
-                                        >
-                                            {Number(product.stock) > 0
-                                                ? "Add to Cart"
-                                                : "Out of Stock"}
-                                        </Button>
+                                        <div className='flex gap-2'>
+                                            <Button
+                                                onClick={() =>
+                                                    handleCart(
+                                                        product._id,
+                                                        quantity,
+                                                    )
+                                                }
+                                                size='lg'
+                                                variant={"secondary"}
+                                                className='w-full'
+                                            >
+                                                Add to Cart
+                                            </Button>
+                                            <Button
+                                                onClick={() => {
+                                                    !isAlreadyInCart &&
+                                                        handleCart(
+                                                            product._id,
+                                                            quantity,
+                                                        );
+                                                    navigate("/cart");
+                                                }}
+                                                size='lg'
+                                                variant={"primary"}
+                                                className='w-full'
+                                            >
+                                                Buy Now
+                                            </Button>
+                                        </div>
                                     </>
                                 )}
 
@@ -200,6 +167,7 @@ const Product = () => {
                             </div>
                         </div>
 
+                        {/* Store */}
                         <div className='gap-3 px-6 mt-6 flex items-center '>
                             <img
                                 className='rounded-full h-10 w-10 border border-zinc-200 p-1'
@@ -219,6 +187,7 @@ const Product = () => {
                             </div>
                         </div>
 
+                        {/* Description */}
                         <div className='bg-white rounded-2xl border border-zinc-200 p-8'>
                             <h2 className='text-lg font-semibold mb-4'>
                                 Product Description
@@ -226,41 +195,6 @@ const Product = () => {
                             <p className='text-sm text-zinc-600 leading-relaxed'>
                                 <Markdown>{product.description}</Markdown>
                             </p>
-                        </div>
-
-                        <div className='bg-white rounded-2xl border border-zinc-200 p-8 mt-6'>
-                            <h2 className='text-lg font-semibold mb-6'>
-                                Customer Reviews
-                            </h2>
-
-                            <div className='flex items-center gap-4 mb-6'>
-                                <span className='text-3xl font-bold'>4.5</span>
-                                <div className='text-yellow-500 text-lg'>
-                                    ★★★★☆
-                                </div>
-                                <span className='text-sm text-zinc-500'>
-                                    Based on 128 reviews
-                                </span>
-                            </div>
-
-                            <div className='border-t border-zinc-200 pt-4 space-y-2'>
-                                <div className='flex items-center justify-between'>
-                                    <p className='font-medium'>Rahul Sharma</p>
-                                    <span className='text-sm text-zinc-500'>
-                                        2 days ago
-                                    </span>
-                                </div>
-
-                                <div className='text-yellow-500 text-sm'>
-                                    ★★★★☆
-                                </div>
-
-                                <p className='text-sm text-zinc-600 leading-relaxed'>
-                                    Great quality product. Packaging was neat
-                                    and delivery was fast. Would definitely
-                                    purchase again.
-                                </p>
-                            </div>
                         </div>
                     </div>
                 </div>

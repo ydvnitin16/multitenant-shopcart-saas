@@ -96,7 +96,7 @@ export default function AdminDashboard() {
                 </Button>
             }
         >
-            <main className='p-6 space-y-6 border-t border-zinc-300'>
+            <main className='py-6 space-y-6 border-t border-zinc-300'>
                 {/* Stats card */}
                 <section className='grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3'>
                     {statCards(stats).map((item) => {
@@ -119,7 +119,7 @@ export default function AdminDashboard() {
                 {/* Charts */}
                 <section className='grid grid-cols-1 gap-5 xl:grid-cols-3'>
                     {/* Revenue chart */}
-                    <div className='rounded-2xl border border-zinc-200 bg-white p-5 xl:col-span-2'>
+                    <div className='rounded-2xl border border-zinc-200 bg-white py-5 sm:px-5 px-2 xl:col-span-2'>
                         <div>
                             <h3 className='text-lg font-semibold'>
                                 Revenue Analytics
@@ -155,7 +155,7 @@ export default function AdminDashboard() {
                     {/* Subscription stats */}
                     <div className='rounded-2xl border border-zinc-200 bg-white p-5'>
                         <h3 className='text-lg font-semibold'>
-                            Subscription Plans
+                            Active Subscription Plans
                         </h3>
 
                         <div className='mt-6 space-y-5'>

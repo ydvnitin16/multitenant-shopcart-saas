@@ -18,7 +18,7 @@ const useCartStore = create(
                             item.productId === productId
                                 ? {
                                       ...item,
-                                      quantity: item.quantity + 1,
+                                      quantity: item.quantity + (selectedQty || 1),
                                   }
                                 : item,
                         ),

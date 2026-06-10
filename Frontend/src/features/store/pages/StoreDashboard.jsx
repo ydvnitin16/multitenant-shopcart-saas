@@ -158,10 +158,12 @@ const StoreDashboard = () => {
                             <Badge
                                 content={`${displayStore?.subscriptionPlan || "FREE"} plan`}
                                 variant={
-                                    displayStore?.subscriptionStatus ===
-                                    "ACTIVE"
-                                        ? "green"
-                                        : "yellow"
+                                    displayStore?.subscriptionPlan === "STARTER"
+                                        ? "yellow"
+                                        : displayStore?.subscriptionPlan ===
+                                            "PRO"
+                                          ? "green"
+                                          : "grey"
                                 }
                                 className={"rounded-md"}
                             />
@@ -179,7 +181,7 @@ const StoreDashboard = () => {
                     </>
                 }
             >
-                <main className='p-6 space-y-6'>
+                <main className='py-6 space-y-6'>
                     <section className='grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4'>
                         {statCards(stats).map((item) => {
                             const Icon = item.icon;

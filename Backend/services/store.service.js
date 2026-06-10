@@ -415,7 +415,7 @@ export const getStoreStatsService = async (store) => {
 
 export const getStoreFrontService = async (query) => {
     const store = await Store.findOne(query).select(
-        "name description slug address image email contact ",
+        "name description status slug address image email contact ",
     );
     if (!store) {
         throw new ApiError(404, "Store not found");

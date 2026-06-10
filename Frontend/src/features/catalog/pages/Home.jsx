@@ -4,19 +4,15 @@ import Features from "../components/Features";
 import ProductCard from "../components/ProductCard";
 import SectionWrapper from "../components/SectionWrapper";
 import CategoriesMarquee from "../components/CategoriesMarquee";
-import { categoriesData } from "../data/categoriesData";
+import { PRODUCT_CATEGORIES } from "../data/categoriesData";
 import InlineLoader from "@/components/ui/InlineLoader";
 import useFetch from "@/hooks/useFetch";
 
 const Home = () => {
-    const {
-        data: bestSellingData,
-        loading: bestSellingProductsLoading,
-    } = useFetch("/products?page=1&limit=10&sortBy=sold&order=desc");
-    const {
-        data: newArrivalsData,
-        loading: newArrivalsProductsLoading,
-    } = useFetch("/products?page=1&limit=10&sortBy=createdAt&order=asc");
+    const { data: bestSellingData, loading: bestSellingProductsLoading } =
+        useFetch("/products?page=1&limit=10&sortBy=sold&order=desc");
+    const { data: newArrivalsData, loading: newArrivalsProductsLoading } =
+        useFetch("/products?page=1&limit=10&sortBy=createdAt&order=asc");
 
     const bestSellingProducts = bestSellingData?.products || [];
     const newArrivalsProducts = newArrivalsData?.products || [];
@@ -27,7 +23,7 @@ const Home = () => {
             <HeroSection />
 
             {/* Categories Pill */}
-            <CategoriesMarquee categories={categoriesData} />
+            <CategoriesMarquee categories={PRODUCT_CATEGORIES} />
 
             <main className='mx-auto max-w-7xl px-6 py-8'>
                 {/* New Arrivals */}

@@ -60,7 +60,7 @@ const Stores = () => {
                             platform.'
                 actions={
                     <div className='font-medium italic'>
-                        Total Store: {pagination.total}
+                        Total Stores: {pagination.total}
                     </div>
                 }
             >

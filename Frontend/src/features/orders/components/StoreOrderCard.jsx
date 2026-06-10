@@ -1,6 +1,13 @@
 import Button from "@/components/ui/Button";
-import OrderStatusBadge from "./OrderStatusBadge";
 import OrderItems from "./OrderItems";
+import Badge from "@/components/ui/Badge";
+
+const statusColors = {
+    PENDING: "yellow",
+    SHIPPED: "blue",
+    DELIVERED: "green",
+    CANCELLED: "red",
+};
 
 const StoreOrderCard = ({
     storeOrder,
@@ -11,6 +18,7 @@ const StoreOrderCard = ({
     const paymentPending =
         parentOrder?.paymentMethod === "CARD" &&
         parentOrder?.paymentStatus === "PENDING";
+
     const canCancel =
         !paymentPending &&
         storeOrder.status !== "DELIVERED" &&
@@ -30,18 +38,21 @@ const StoreOrderCard = ({
                     </p>
                 </div>
 
-                <div className='flex items-center gap-3'>
-                    <span
-                        className={`text-xs px-3 py-1 rounded-full font-medium ${
-                            storeOrder.isPaid
-                                ? "bg-emerald-100 text-emerald-700"
-                                : "bg-amber-100 text-amber-700"
-                        }`}
-                    >
-                        {storeOrder.isPaid ? "Paid" : "Unpaid"}
-                    </span>
-                    <OrderStatusBadge status={storeOrder.status} />
-                </div>
+                {
+                    <div className='flex items-center gap-3'>
+                        {!parentOrder.isPaid && (
+                            <Badge
+                                content={storeOrder.isPaid ? "Paid" : "Unpaid"}
+                                variant={storeOrder.isPaid ? "green" : "yellow"}
+                            />
+                        )}
+
+                        <Badge
+                            content={storeOrder.status}
+                            variant={statusColors[storeOrder.status]}
+                        />
+                    </div>
+                }
             </div>
 
             <OrderItems items={storeOrder.items} />

@@ -11,6 +11,7 @@ import useUpdateProduct from "../hooks/useUpdateProduct";
 import useDeleteProduct from "../hooks/useDeleteProduct";
 import UpdateProductModal from "../components/UpdateProductModal";
 import useVendorStoreStore from "@/stores/useVendorStoreStore";
+import PageShell from "@/components/layout/PageShell";
 
 const ManageProducts = () => {
     const { storeSlug } = useParams();
@@ -98,17 +99,12 @@ const ManageProducts = () => {
 
     return (
         <>
-            <div className='space-y-6'>
-                {/* Header */}
-                <div>
-                    <h1 className='text-2xl font-semibold'>Products</h1>
-
-                    <p className='text-sm text-zinc-500 mt-1'>
-                        Manage pricing, stock and visibility of your products
-                    </p>
-                </div>
-
-
+            <PageShell
+                title={"Products"}
+                description={
+                    "Manage pricing, stock and visibility of your products"
+                }
+            >
                 {/* Main Layout */}
                 <div className='grid grid-cols-1 lg:grid-cols-12 gap-6 items-start'>
                     {/* Left Table */}
@@ -157,36 +153,33 @@ const ManageProducts = () => {
                         )}
                     </div>
                 </div>
-            </div>
-
-            {/* Mobile */}
-            {isModalOpen && selectedProduct && (
-                <div className='fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4 lg:hidden'>
-                    <div className='w-full max-w-md max-h-[90vh] overflow-y-auto'>
-                        <ProductDetailsCard
-                            product={selectedProduct}
-                            onClose={() => setIsModalOpen(false)}
-                            onEdit={handleOpenUpdateModal}
-                            onDelete={handleDeleteProduct}
-                            deleteLoading={deleteLoading}
-                        />
+                {/* Mobile */}
+                {isModalOpen && selectedProduct && (
+                    <div className='fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4 lg:hidden'>
+                        <div className='w-full max-w-md max-h-[90vh] overflow-y-auto'>
+                            <ProductDetailsCard
+                                product={selectedProduct}
+                                onClose={() => setIsModalOpen(false)}
+                                onEdit={handleOpenUpdateModal}
+                                onDelete={handleDeleteProduct}
+                                deleteLoading={deleteLoading}
+                            />
+                        </div>
                     </div>
-                </div>
-            )}
-
-            {isUpdateModalOpen && selectedProduct && (
-                <UpdateProductModal
-                    product={selectedProduct}
-                    onClose={handleCloseUpdateModal}
-                    onSave={handleSaveProduct}
-                    loading={updateLoading}
-                    error={updateError}
-                />
-            )}
-
-            {deleteError && (
-                <p className='mt-4 text-sm text-red-600'>{deleteError}</p>
-            )}
+                )}
+                {isUpdateModalOpen && selectedProduct && (
+                    <UpdateProductModal
+                        product={selectedProduct}
+                        onClose={handleCloseUpdateModal}
+                        onSave={handleSaveProduct}
+                        loading={updateLoading}
+                        error={updateError}
+                    />
+                )}
+                {deleteError && (
+                    <p className='mt-4 text-sm text-red-600'>{deleteError}</p>
+                )}{" "}
+            </PageShell>
         </>
     );
 };

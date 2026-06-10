@@ -2,17 +2,18 @@ import Button from "@/components/ui/Button";
 import { formatPrice } from "@/utils/formatPrice";
 import useCartStore from "@/stores/useCartStore";
 import { useNavigate } from "react-router-dom";
+import Badge from "@/components/ui/Badge";
 
 const PAYMENT_STATUS_STYLES = {
-    PENDING: "bg-amber-100 text-amber-700",
-    PAID: "bg-emerald-100 text-emerald-700",
-    FAILED: "bg-rose-100 text-rose-700",
-    CANCELLED: "bg-zinc-200 text-zinc-700",
+    PENDING: "yellow",
+    PAID: "green",
+    FAILED: "red",
+    CANCELLED: "blue",
 };
 
 const PAYMENT_STATUS_LABELS = {
     PENDING: "Payment Pending",
-    PAID: "Paid",
+    PAID: "Payment Paid",
     FAILED: "Payment Failed",
     CANCELLED: "Payment Cancelled",
 };
@@ -20,19 +21,16 @@ const PAYMENT_STATUS_LABELS = {
 const OrderHeader = ({ order }) => {
     const navigate = useNavigate();
     const setCart = useCartStore((state) => state.setCart);
-    const showStripePaymentStatus = order.paymentMethod === "CARD";
+
     const paymentStatusClass =
-        PAYMENT_STATUS_STYLES[order.paymentStatus] ||
-        "bg-zinc-100 text-zinc-700";
+        PAYMENT_STATUS_STYLES[order.paymentStatus] || "grey";
+
     const paymentStatusLabel =
         PAYMENT_STATUS_LABELS[order.paymentStatus] || order.paymentStatus;
+
     const showRetryAction =
         order.paymentMethod === "CARD" &&
         ["FAILED", "CANCELLED"].includes(order.paymentStatus);
-    const unpaidMessage =
-        order.paymentStatus === "FAILED"
-            ? "Payment failed. This order is unpaid and stock has already been restored."
-            : "Payment was cancelled. This order is unpaid and stock has already been restored.";
 
     const handleOrderAgain = () => {
         const items = order.storeOrders
@@ -80,13 +78,12 @@ const OrderHeader = ({ order }) => {
                 </p>
             </div>
 
-            {showStripePaymentStatus && (
+            {paymentStatusLabel && (
                 <div className='flex items-center gap-3 flex-wrap justify-end'>
-                    <span
-                        className={`text-xs px-3 py-1 rounded-full font-medium ${paymentStatusClass}`}
-                    >
-                        {paymentStatusLabel}
-                    </span>
+                    <Badge
+                        content={paymentStatusLabel}
+                        variant={paymentStatusClass}
+                    />
 
                     {showRetryAction && (
                         <Button
@@ -97,12 +94,6 @@ const OrderHeader = ({ order }) => {
                             Order Again
                         </Button>
                     )}
-                </div>
-            )}
-
-            {showRetryAction && (
-                <div className='w-full'>
-                    <p className='text-xs text-rose-700'>{unpaidMessage}</p>
                 </div>
             )}
         </div>

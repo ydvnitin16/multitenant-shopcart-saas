@@ -9,7 +9,7 @@ const CategoriesMarquee = ({ categories }) => {
                         key={index}
                         className='flex shrink-0 items-center gap-3 rounded-full bg-white px-4 py-2 border border-zinc-200 shadow-sm'
                     >
-                        <span className='font-medium text-sm'>{cat.name}</span>
+                        <span className='font-medium text-sm'>{cat}</span>
                     </div>
                 ))}
             </div>

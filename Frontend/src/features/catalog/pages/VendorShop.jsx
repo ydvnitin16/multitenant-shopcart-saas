@@ -3,10 +3,10 @@ import ProductCard from "../components/ProductCard";
 import useFetch from "@/hooks/useFetch";
 import InlineLoader from "@/components/ui/InlineLoader";
 import { useMemo, useState } from "react";
+import StoreFrontInfo from "../components/StoreFrontInfo";
 
 const VendorShop = () => {
     const { storeSlug } = useParams();
-    const [category, setCategory] = useState("");
     const { data, loading, error } = useFetch(
         storeSlug ? `/stores/${storeSlug}` : null,
     );
@@ -19,16 +19,11 @@ const VendorShop = () => {
         }
 
         const params = new URLSearchParams({
-            limit: "50",
             store: storeId,
         });
 
-        if (category) {
-            params.set("category", category);
-        }
-
         return `/products?${params.toString()}`;
-    }, [category, storeId]);
+    }, [storeId]);
 
     const {
         data: productsData,
@@ -36,7 +31,6 @@ const VendorShop = () => {
         error: productsError,
     } = useFetch(productsEndpoint);
     const products = productsData?.products || [];
-    const categories = productsData?.categories || [];
     const errorMessage = error?.message || productsError?.message;
 
     if (loading || productsLoading) {
@@ -65,80 +59,11 @@ const VendorShop = () => {
 
     return (
         <div className='bg-zinc-50 min-h-screen pb-16'>
-            {/* Cover Section */}
+            {/* Cover  */}
             <div className='relative'>
                 <div className='h-56 md:h-72 w-full bg-gradient-to-r from-zinc-900 to-zinc-700 rounded-b-3xl' />
 
-                {/* Store Card */}
-                <div className='max-w-6xl mx-auto px-6'>
-                    <div className='bg-white rounded-2xl shadow-md border border-zinc-200 -mt-20 p-6 md:p-8 flex flex-col gap-6'>
-                        {/* Left Side */}
-                        <div className='flex items-start gap-5'>
-                            <img
-                                src={store.image?.url}
-                                className='w-20 h-20 rounded-2xl object-cover shadow-sm'
-                            />
-
-                            <div>
-                                <h1 className='text-2xl font-semibold text-zinc-900'>
-                                    {store.name}{" "}
-                                    <span className='bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-md text-xs font-medium'>
-                                        {store.subscriptionPlan ?? "FREE"}
-                                    </span>
-                                </h1>
-
-                                <div className='flex items-center gap-3 mt-2 text-sm text-zinc-600'>
-                                    <span className='bg-blue-100 text-blue-600 px-2 py-0.5 rounded-md text-xs font-medium'>
-                                        Official Partner
-                                    </span>
-                                    <span>⭐ 4.8 (2,482 reviews)</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className='flex justify-between flex-col md:flex-row gap-8'>
-                            <div className='md:col-span-2 '>
-                                <h2 className='text-lg font-semibold mb-4 text-zinc-900'>
-                                    About the Store
-                                </h2>
-
-                                <p className='text-sm text-zinc-600 leading-relaxed'>
-                                    {store.description}
-                                </p>
-                            </div>
-
-                            {/* Store Info */}
-                            <div className='bg-white rounded-2xl border border-zinc-200 p-6 shadow-sm space-y-4 text-sm text-zinc-600'>
-                                <div>
-                                    <p className='text-xs text-zinc-400'>
-                                        SUPPORT EMAIL
-                                    </p>
-                                    <p className='font-medium text-zinc-900'>
-                                        {store.email}
-                                    </p>
-                                </div>
-
-                                <div>
-                                    <p className='text-xs text-zinc-400'>
-                                        HEADQUARTERS
-                                    </p>
-                                    <p className='font-medium text-zinc-900'>
-                                        {store.address}
-                                    </p>
-                                </div>
-
-                                <div>
-                                    <p className='text-xs text-zinc-400'>
-                                        MEMBER SINCE
-                                    </p>
-                                    <p className='font-medium text-zinc-900'>
-                                        October 2021
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <StoreFrontInfo store={store} />
             </div>
 
             {/* Products Section */}
@@ -146,29 +71,16 @@ const VendorShop = () => {
                 <div className='flex items-center justify-between mb-6'>
                     <div>
                         <h2 className='text-xl font-semibold text-zinc-900'>
-                            {category || "Products"}
+                            Products
                         </h2>
                         <p className='text-sm text-zinc-500'>
                             Showing {products.length} products
                         </p>
                     </div>
-
-                    <select
-                        value={category}
-                        className='rounded-lg bg-white px-3 py-2 text-sm text-zinc-700 outline-none ring-1 ring-zinc-200'
-                        onChange={(e) => setCategory(e.target.value)}
-                    >
-                        <option value=''>All categories</option>
-                        {categories.map((item) => (
-                            <option key={item} value={item}>
-                                {item}
-                            </option>
-                        ))}
-                    </select>
                 </div>
 
                 <div className='grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'>
-                    {products.map((product) => (
+                    {[...products].map((product) => (
                         <ProductCard
                             key={product._id}
                             id={product._id}
