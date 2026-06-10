@@ -25,14 +25,14 @@ export const getProducts = async ({
     }
 
     return fetchService({
-        endpoint: `products?${params.toString()}`,
+        endpoint: `/products?${params.toString()}`,
         method: "GET",
     });
 };
 
 export const getProductById = async (id) => {
     return fetchService({
-        endpoint: `product/${id}`,
+        endpoint: `/product/${id}`,
         method: "GET",
     });
 };
@@ -40,7 +40,7 @@ export const getProductById = async (id) => {
 export const getProductsByIds = async (productIds) => {
     const ids = productIds.join(",");
     return fetchService({
-        endpoint: `api/products/cart?ids=${ids}`,
+        endpoint: `/products/cart?ids=${ids}`,
         method: "GET",
     });
 };

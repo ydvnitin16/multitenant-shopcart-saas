@@ -16,7 +16,7 @@ const useStores = ({ status, page = 1, limit = 10 }) => {
             params.set("status", status);
         }
 
-        return `/api/admin/stores?${params.toString()}`;
+        return `/admin/stores?${params.toString()}`;
     }, [limit, page, status]);
 
     const { data, loading, error, reFetch } = useFetch(endpoint);

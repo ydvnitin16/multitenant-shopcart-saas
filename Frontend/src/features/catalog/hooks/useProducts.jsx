@@ -29,7 +29,7 @@ export const useProducts = ({
         return searchParams.toString();
     }, [category, limit, order, page, sortBy, store, storeId]);
 
-    const { data, loading, error, reFetch } = useFetch(`/api/products?${params}`);
+    const { data, loading, error, reFetch } = useFetch(`/products?${params}`);
 
     return {
         products: data?.products || [],

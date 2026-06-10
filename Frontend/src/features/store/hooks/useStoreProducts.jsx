@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 const useStoreProducts = ({ storeId }) => {
     const [products, setProducts] = useState([]);
     const { data, loading, error, reFetch } = useFetch(
-        storeId ? `/api/stores/${storeId}/products` : null,
+        storeId ? `/stores/${storeId}/products` : null,
         {},
         { enabled: Boolean(storeId) },
     );

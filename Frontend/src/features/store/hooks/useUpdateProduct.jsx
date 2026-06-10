@@ -16,7 +16,7 @@ const useUpdateProduct = ({ storeId, setProducts }) => {
         };
 
         const data = await executeUpdate({
-            endpoint: `/api/stores/${storeId}/products/${productId}/update`,
+            endpoint: `/stores/${storeId}/products/${productId}/update`,
             enabled: true,
             method: "PUT",
             body: normalizedPayload,

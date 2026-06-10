@@ -2,7 +2,7 @@ import useFetch from "@/hooks/useFetch";
 
 export const useProduct = ({ productId }) => {
     const { data, loading, error, reFetch } = useFetch(
-        productId ? `/api/products/${productId}` : null,
+        productId ? `/products/${productId}` : null,
         {},
         { enabled: Boolean(productId) },
     );

@@ -7,11 +7,9 @@ export const fetchService = async ({
     body,
     signal,
 }) => {
-    const normalizedEndpoint = endpoint?.replace(/^\/+/, "") || "";
-    const normalizedBaseUrl = BASE_URL?.replace(/\/+$/, "") || "";
-    const url = `${normalizedBaseUrl}/${normalizedEndpoint}`;
+    const url = `${BASE_URL}${endpoint}`;
 
-    // Only set default Content-Type for non-FormData bodies
+    // set default headers only for non-formData bodies
     const defaultHeaders =
         body instanceof FormData ? {} : { "Content-Type": "application/json" };
 
@@ -24,7 +22,6 @@ export const fetchService = async ({
             ? { body: body instanceof FormData ? body : JSON.stringify(body) }
             : {}),
     };
-
     const res = await fetch(url, config);
     const contentType = res.headers.get("content-type") || "";
     const data = contentType.includes("application/json")

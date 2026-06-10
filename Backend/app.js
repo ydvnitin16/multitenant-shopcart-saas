@@ -26,29 +26,39 @@ connectDB();
 app.use(morgan("dev"));
 app.use(helmet());
 
-// Rate limiting
-const authLimiter = rateLimit({
-    windowMs: 1000 * 60 * 15,
-    max: 5,
-    message: { error: "Too many requests, Please try again later!" },
-});
-const generalLimiter = rateLimit({
-    windowMs: 1000 * 60 * 15,
-    max: 200,
-    message: { error: "Too many requests, Please try again later!" },
-});
-
-// Rate limiters
-app.use("/api", generalLimiter);
-app.use("/api/auth", authLimiter);
-
-// Global Middlewares
+// CORS
 app.use(
     cors({
         origin: process.env.CLIENT_URL,
         credentials: true,
     }),
 );
+
+// Rate limiting
+const authLimiter = rateLimit({
+    windowMs: 1000 * 60 * 15,
+    max: 5,
+    handler: (req, res) => {
+        res.status(429).json({
+            success: false,
+            message: "Too many requests. Please try again later.",
+        });
+    },
+});
+const generalLimiter = rateLimit({
+    windowMs: 1000 * 60 * 15,
+    max: 100,
+    handler: (req, res) => {
+        res.status(429).json({
+            success: false,
+            message: "Too many requests. Please try again later.",
+        });
+    },
+});
+
+// Rate limiters
+app.use("/api", generalLimiter);
+app.use("/api/auth", authLimiter);
 
 // Raw request of stripe webhook
 app.post(
@@ -57,6 +67,7 @@ app.post(
     stripeWebhookHandler,
 );
 
+// Global Middlewares
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());

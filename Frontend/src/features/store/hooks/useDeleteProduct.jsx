@@ -9,7 +9,7 @@ const useDeleteProduct = ({ storeId, setProducts }) => {
 
     const deleteProduct = async (productId) => {
         const data = await executeDelete({
-            endpoint: `/api/stores/${storeId}/products/${productId}`,
+            endpoint: `/stores/${storeId}/products/${productId}`,
             enabled: true,
             method: "DELETE",
         });

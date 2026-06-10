@@ -10,7 +10,7 @@ export const useStoreOrders = ({ storeId, page, limit }) => {
             limit: String(limit),
         });
 
-        return `/api/stores/${storeId}/orders?${params.toString()}`;
+        return `/stores/${storeId}/orders?${params.toString()}`;
     }, [limit, page, storeId]);
 
     const [orders, setOrders] = useState([]);

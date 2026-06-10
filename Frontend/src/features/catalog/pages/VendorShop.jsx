@@ -9,7 +9,7 @@ const VendorShop = () => {
     const { storeSlug } = useParams();
     const [category, setCategory] = useState("");
     const { data, loading, error } = useFetch(
-        storeSlug ? `api/stores/${storeSlug}` : null,
+        storeSlug ? `/stores/${storeSlug}` : null,
         {},
         { enabled: Boolean(storeSlug) },
     );

@@ -1,31 +1,13 @@
 import { fetchService } from "@/services/fetchService";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const useFetch = (endpoint, options = {}, config = {}) => {
-    const { enabled = true } = config;
+const useFetch = (endpoint, options = {}) => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const abortRef = useRef(null);
-    const optionsRef = useRef(options);
 
-    useEffect(() => {
-        optionsRef.current = options;
-    }, [options]);
-
-    const execute = useCallback(async (overrideOptions = {}) => {
-        const isManualRequest = Object.prototype.hasOwnProperty.call(
-            overrideOptions,
-            "endpoint",
-        );
-        const requestEndpoint = overrideOptions.endpoint ?? endpoint;
-        const requestEnabled =
-            overrideOptions.enabled ?? (isManualRequest ? true : enabled);
-
-        if (!requestEndpoint || !requestEnabled) {
-            return null;
-        }
-
+    const execute = useCallback(async () => {
         if (abortRef.current) abortRef.current.abort();
         const controller = new AbortController();
         abortRef.current = controller;
@@ -35,10 +17,9 @@ const useFetch = (endpoint, options = {}, config = {}) => {
 
         try {
             const result = await fetchService({
-                endpoint: requestEndpoint,
+                endpoint,
                 signal: controller.signal,
-                ...optionsRef.current,
-                ...overrideOptions,
+                ...options,
             });
             setData(result);
             return result;
@@ -50,18 +31,18 @@ const useFetch = (endpoint, options = {}, config = {}) => {
         } finally {
             setLoading(false);
         }
-    }, [enabled, endpoint]);
+    }, [endpoint, options]);
 
     useEffect(() => {
-        if (!enabled || !endpoint) {
+        if (!endpoint) {
             return undefined;
         }
 
         execute().catch(() => {});
         return () => abortRef.current?.abort();
-    }, [enabled, endpoint, execute]);
+    }, [endpoint, execute]);
 
-    return { data, loading, error, reFetch: execute, execute };
+    return { data, loading, error, reFetch: execute };
 };
 
 export default useFetch;
